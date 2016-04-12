@@ -58,8 +58,8 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
          * 検索対象のキャラクタリスティックUUID
          */
         private val DEVICE_BUTTON_SENSOR_CHARACTERISTIC_UUID =
-                //        "00003333-0000-1000-8000-00805f9b34fb" // 読み取り用
-                //        "13333333-3333-3333-3333-333333330003" // 書き込み用
+                //"00003333-0000-1000-8000-00805f9b34fb" // 書き込み用
+                //"13333333-3333-3333-3333-333333330003" // 読み取り用
                 "13333333-3333-3333-3333-333333330001" // 通知用
         /**
          * キャラクタリスティック設定UUID
@@ -79,8 +79,8 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
         }
 
         val sb: StringBuilder = StringBuilder()
-        md!!.update(value.toByteArray())
-        for (b in md.digest()) {
+        md?.update(value.toByteArray())
+        for (b in md!!.digest()) {
             val hex = String.format("%02x", b)
             sb.append(hex)
         }
@@ -155,10 +155,13 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                         setStatus(BleStatus.DEVICE_FOUND)
                         // 省電力のためスキャンを停止する
                         stopScanByBleScanner()
-                        // スキャン中に見つかったデバイスに接続を試みる.第三引数には接続後に呼ばれるBluetoothGattCallbackを指定する.
+                        // スキャン中に見つかったデバイスに接続を試みる.
+                        // 第三引数には接続後に呼ばれるBluetoothGattCallbackを指定する.
                         result.device.connectGatt(applicationContext, false, mBluetoothGattCallback)
-                        val msg = "name =" + result.device.name + ", bondState = " + result.device.bondState +
-                                ", address = " + result.device.address + ", type" + result.device.type +
+                        val msg = "name =" + result.device.name +
+                                ", bondState = " + result.device.bondState +
+                                ", address = " + result.device.address +
+                                ", type" + result.device.type +
                                 ", uuid = " + Arrays.toString(result.device.uuids)
                         Log.d("Scan", msg)
 
@@ -320,11 +323,13 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                 if (service == null) {
                     // サービスが見つからなかった
                     setStatus(BleStatus.SERVICE_NOT_FOUND)
+                    Log.d(TAG, "onServicesDiscovered service:Not Found.")
                 } else {
                     // サービスを見つけた
                     setStatus(BleStatus.SERVICE_FOUND)
-                    val characteristic = service.getCharacteristic(UUID.fromString(
-                            DEVICE_BUTTON_SENSOR_CHARACTERISTIC_UUID))
+                    val characteristic: BluetoothGattCharacteristic
+                            = service.getCharacteristic(UUID
+                            .fromString(DEVICE_BUTTON_SENSOR_CHARACTERISTIC_UUID))
                     Log.d(TAG, "onServicesDiscovered characteristic:" + characteristic)
 
                     if (characteristic == null) {
