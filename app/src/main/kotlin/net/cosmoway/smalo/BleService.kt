@@ -341,12 +341,12 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                         Log.d(TAG, "onServicesDiscovered characteristic:" + characteristic.uuid)
                         // 値書き込み
                         /*var value: String
-                        if (mReceivedMessage == "open") {
-                            value = "close"
-                        } else if (mReceivedMessage == "close") {
-                            value = "open"
+                        if (mReceivedMessage == "Open") {
+                            value = "Close"
+                        } else if (mReceivedMessage == "Close") {
+                            value = "Open"
                         } else {
-                            value = "unknown"
+                            value = "Unknown"
                         }
                         characteristic.setValue(value.toString())
                         Log.d(TAG, value.toString())
