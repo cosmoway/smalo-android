@@ -49,7 +49,8 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
         /**
          * 検索対象機器の機器名
          */
-        private val DEVICE_NAME = "smalo"
+        //private val DEVICE_NAME = "smalo"
+        private val DEVICE_NAME = "Galaxy S6"
 
         /**
          * 検索対象機器のサービスUUID
@@ -171,7 +172,7 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                         val list: Array<String> = arrayOf(result.device.name.toString(),
                                 result.device.bondState.toString(), result.device.address.toString(),
                                 result.device.type.toString(), Arrays.toString(result.device.uuids))
-                        sendBroadCastToMainActivity(list,null)
+                        sendBroadCastToMainActivity(list, null)
                     }
                 }
 
@@ -298,7 +299,7 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
             Log.d("Scan", msg)
             val list: Array<String> = arrayOf(device.name.toString(), device.bondState.toString(),
                     device.address.toString(), device.type.toString(), Arrays.toString(device.uuids))
-            sendBroadCastToMainActivity(list,null)
+            sendBroadCastToMainActivity(list, null)
         }
     }
 
@@ -396,7 +397,7 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.d(TAG, "onCharacteristicRead: " + characteristic.getStringValue(0))
                 // 受け取ったメッセージを、アクティビティに投げる
-                sendBroadCastToMainActivity(null,mReceivedMessage)
+                sendBroadCastToMainActivity(null, mReceivedMessage)
                 // 受け取ったメッセージ取得
                 mReceivedMessage = characteristic.getStringValue(0)
                 // 受け取ったメッセージ記憶
