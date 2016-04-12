@@ -330,6 +330,7 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                     // サービスを見つけた
                     setStatus(BleStatus.SERVICE_FOUND)
                     Log.d(TAG, "onServicesDiscovered characteristic:Found" + service.uuid)
+
                     val writeCharacteristic: BluetoothGattCharacteristic
                             = service.getCharacteristic(UUID.fromString(WRITE_CHAR_UUID))
                     val readCharacteristic: BluetoothGattCharacteristic
@@ -352,18 +353,14 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                         writeCharacteristic.setValue(value.toString())
                         Log.d(TAG, value.toString())
                         gatt.writeCharacteristic(writeCharacteristic)
-
-                        // キャラクタリスティックが見つからなかった
-                        setStatus(BleStatus.CHARACTERISTIC_NOT_FOUND)
-                        Log.d(TAG, "onServicesDiscovered characteristic:null")
                     }
                     if (readCharacteristic != null) {
-                        // キャラクタリスティックを見つけた
+                        // 読み取り用キャラクタリスティックを見つけた
                         Log.d(TAG, "onServicesDiscovered characteristic:" + READ_CHAR_UUID)
                         gatt.readCharacteristic(readCharacteristic)
                     }
                     if (notifyCharacteristic != null) {
-                        // 通知
+                        // 通知用キャラクタリスティックを見つけた
                         Log.d(TAG, "onServicesDiscovered characteristic:" + NOTIFY_CHAR_UUID)
                         // Notification を要求する
                         val registered = gatt.setCharacteristicNotification(notifyCharacteristic, true)
@@ -383,6 +380,9 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                             setStatus(BleStatus.NOTIFICATION_REGISTER_FAILED)
                         }
                     }
+                    // キャラクタリスティックが見つからなかった
+                    /*setStatus(BleStatus.CHARACTERISTIC_NOT_FOUND)
+                    Log.d(TAG, "onServicesDiscovered characteristic:null")*/
                 }
             }
         }
