@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Message
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.ArrayAdapter
@@ -23,6 +24,8 @@ class MainActivity : ListActivity(), View.OnClickListener {
     private var mIntentFilter: IntentFilter? = null
     private var mStartButton: Button? = null
     private var mStopButton: Button? = null
+    private var mOpenButton: Button? = null
+    private var mCloseButton: Button? = null
     private var mMessage: String? = null
 
     //スリープモードからの復帰の為のフラグ定数
@@ -74,8 +77,19 @@ class MainActivity : ListActivity(), View.OnClickListener {
 
         mStartButton = findViewById(R.id.btn_connect) as Button
         mStopButton = findViewById(R.id.btn_disconnect) as Button
+        mOpenButton = findViewById(R.id.btn_open) as Button
+        mCloseButton = findViewById(R.id.btn_close) as Button
         (mStartButton as Button).setOnClickListener(this)
         (mStopButton as Button).setOnClickListener(this)
+        (mOpenButton as Button).setOnClickListener(this)
+        (mCloseButton as Button).setOnClickListener(this)
+        if (mMessage == "Open") {
+            (mOpenButton as Button).isEnabled = false
+            (mCloseButton as Button).isEnabled = true
+        } else if (mMessage == "Close") {
+            (mOpenButton as Button).isEnabled = true
+            (mCloseButton as Button).isEnabled = false
+        }
     }
 
     override fun onClick(v: View?) {
@@ -83,6 +97,10 @@ class MainActivity : ListActivity(), View.OnClickListener {
             startService(Intent(this@MainActivity, BleService::class.java))
         } else if (v == mStopButton) {
             stopService(Intent(this@MainActivity, BleService::class.java))
+        } else if (v == mOpenButton) {
+            Log.d("MainActivity", "Open")
+        } else if (v == mCloseButton) {
+            Log.d("MainActivity", "Close")
         }
     }
 
