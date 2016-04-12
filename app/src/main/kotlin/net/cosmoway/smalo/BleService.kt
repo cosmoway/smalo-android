@@ -99,10 +99,10 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                 notificationIntent, 0)
 
         builder.setContentTitle(title.toString()) // 1行目
-        if (title.indexOf("200") != -1) {
+        if (title == "Open") {
             builder.setContentText("解錠されました。")
-        } else if (title == "Connection Error") {
-            builder.setContentText("通信処理が正常に終了されませんでした。\n通信環境を御確認下さい。")
+        } else if (title == "Close") {
+            builder.setContentText("施錠されました。")
         } else if (title.indexOf("400") != -1) {
             builder.setContentText("予期せぬエラーが発生致しました。\n開発者に御問合せ下さい。")
         } else if (title.indexOf("403") != -1) {
@@ -390,6 +390,7 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                                              characteristic: BluetoothGattCharacteristic) {
             Log.d(TAG, "onCharacteristicChanged")
             Log.d(TAG, "onCharacteristicRead: " + characteristic.getStringValue(0))
+            makeNotification(characteristic.getStringValue(0))
         }
     }
 
