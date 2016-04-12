@@ -31,7 +31,9 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
     private var mBluetoothLeScanner: BluetoothLeScanner? = null
     private var mBluetoothManager: BluetoothManager? = null
     private var mBluetoothGatt: BluetoothGatt? = null
+    private var mSp: SharedPreferences? = null;
     private var mScanCallback: ScanCallback? = null
+    private var mReceivedMessage: String? = null
 
     // UUID設定用
     private var mId: String? = null
