@@ -50,17 +50,19 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
          * 検索対象機器の機器名
          */
         private val DEVICE_NAME = "smalo"
+
         /**
          * 検索対象機器のサービスUUID
          */
         private val SERVICE_UUID = "00002801-0000-1000-8000-00805f9b34fb"
+
         /**
          * 検索対象のキャラクタリスティックUUID
          */
-        private val DEVICE_BUTTON_SENSOR_CHARACTERISTIC_UUID =
-                //"00003333-0000-1000-8000-00805f9b34fb" // 書き込み用
-                //"13333333-3333-3333-3333-333333330003" // 読み取り用
-                "13333333-3333-3333-3333-333333330001" // 通知用
+        private val WRITE_CHAR_UUID = "00003333-0000-1000-8000-00805f9b34fb" // 書き込み用
+        private val READ_CHAR_UUID = "13333333-3333-3333-3333-333333330003" // 読み取り用
+        private val NOTIFY_CHAR_UUID = "13333333-3333-3333-3333-333333330001" // 通知用
+
         /**
          * キャラクタリスティック設定UUID
          */
@@ -327,20 +329,19 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                 } else {
                     // サービスを見つけた
                     setStatus(BleStatus.SERVICE_FOUND)
-                    val characteristic: BluetoothGattCharacteristic
-                            = service.getCharacteristic(UUID
-                            .fromString(DEVICE_BUTTON_SENSOR_CHARACTERISTIC_UUID))
-                    Log.d(TAG, "onServicesDiscovered characteristic:" + characteristic)
+                    Log.d(TAG, "onServicesDiscovered characteristic:Found" + service.uuid)
+                    val writeCharacteristic: BluetoothGattCharacteristic
+                            = service.getCharacteristic(UUID.fromString(WRITE_CHAR_UUID))
+                    val readCharacteristic: BluetoothGattCharacteristic
+                            = service.getCharacteristic(UUID.fromString(READ_CHAR_UUID))
+                    val notifyCharacteristic: BluetoothGattCharacteristic
+                            = service.getCharacteristic(UUID.fromString(NOTIFY_CHAR_UUID))
 
-                    if (characteristic == null) {
-                        // キャラクタリスティックが見つからなかった
-                        setStatus(BleStatus.CHARACTERISTIC_NOT_FOUND)
-                        Log.d(TAG, "onServicesDiscovered characteristic:null")
-                    } else {
-                        // キャラクタリスティックを見つけた
-                        Log.d(TAG, "onServicesDiscovered characteristic:" + characteristic.uuid)
+                    if (writeCharacteristic != null) {
+                        // 書き込み用キャラクタリスティックを見つけた
+                        Log.d(TAG, "onServicesDiscovered characteristic:" + WRITE_CHAR_UUID)
                         // 値書き込み
-                        /*var value: String
+                        var value: String
                         if (mReceivedMessage == "Open") {
                             value = "Close"
                         } else if (mReceivedMessage == "Close") {
@@ -348,20 +349,28 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                         } else {
                             value = "Unknown"
                         }
-                        characteristic.setValue(value.toString())
+                        writeCharacteristic.setValue(value.toString())
                         Log.d(TAG, value.toString())
-                        gatt.writeCharacteristic(characteristic)*/
+                        gatt.writeCharacteristic(writeCharacteristic)
 
-                        // 値読み取り
-                        // gatt.readCharacteristic(characteristic)
-
+                        // キャラクタリスティックが見つからなかった
+                        setStatus(BleStatus.CHARACTERISTIC_NOT_FOUND)
+                        Log.d(TAG, "onServicesDiscovered characteristic:null")
+                    }
+                    if (readCharacteristic!=null) {
+                        // キャラクタリスティックを見つけた
+                        Log.d(TAG, "onServicesDiscovered characteristic:" + READ_CHAR_UUID)
+                        gatt.readCharacteristic(readCharacteristic)
+                    }
+                    if (notifyCharacteristic!=null) {
                         // 通知
+                        Log.d(TAG, "onServicesDiscovered characteristic:" + NOTIFY_CHAR_UUID)
                         // Notification を要求する
-                        val registered = gatt.setCharacteristicNotification(characteristic, true)
+                        val registered = gatt.setCharacteristicNotification(notifyCharacteristic, true)
 
                         // Characteristic の Notification 有効化
-                        val descriptor: BluetoothGattDescriptor = characteristic.getDescriptor(UUID
-                                .fromString(CLIENT_CHARACTERISTIC_CONFIG))
+                        val descriptor: BluetoothGattDescriptor = notifyCharacteristic
+                                .getDescriptor(UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG))
                         descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
                         gatt.writeDescriptor(descriptor)
 
