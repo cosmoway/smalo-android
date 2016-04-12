@@ -141,7 +141,37 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
         Log.d(TAG, "created")
         mBluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         mBluetoothAdapter = mBluetoothManager?.adapter
-        mBluetoothLeScanner = mBluetoothAdapter?.bluetoothLeScanner
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mBluetoothLeScanner = mBluetoothAdapter?.bluetoothLeScanner
+            mScanCallback = object : ScanCallback() {
+                override fun onScanResult(callbackType: Int, result: ScanResult) {
+                    if (DEVICE_NAME == result.device.name) {
+                        setStatus(BleStatus.DEVICE_FOUND)
+                        // 省電力のためスキャンを停止する
+                        stopScanByBleScanner()
+                        // スキャン中に見つかったデバイスに接続を試みる.第三引数には接続後に呼ばれるBluetoothGattCallbackを指定する.
+                        result.device.connectGatt(applicationContext, false, mBluetoothGattCallback)
+                        val msg = "name =" + result.device.name + ", bondState = " + result.device.bondState +
+                                ", address = " + result.device.address + ", type" + result.device.type +
+                                ", uuid = " + Arrays.toString(result.device.uuids)
+                        Log.d("Scan", msg)
+
+                        val list: Array<String> = arrayOf(result.device.name.toString(),
+                                result.device.bondState.toString(), result.device.address.toString(),
+                                result.device.type.toString(), Arrays.toString(result.device.uuids))
+                        sendBroadCastToMainActivity(list)
+                    }
+                }
+
+                override fun onBatchScanResults(results: List<ScanResult>) {
+                    super.onBatchScanResults(results)
+                }
+
+                override fun onScanFailed(errorCode: Int) {
+                    super.onScanFailed(errorCode)
+                }
+            }
+        }
 
         // 端末固有識別番号の箱
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
@@ -159,35 +189,6 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag")
         mWakeLock?.acquire()
-
-        mScanCallback = object : ScanCallback() {
-            override fun onScanResult(callbackType: Int, result: ScanResult) {
-                if (DEVICE_NAME == result.device.name) {
-                    setStatus(BleStatus.DEVICE_FOUND)
-                    // 省電力のためスキャンを停止する
-                    stopScanByBleScanner()
-                    // スキャン中に見つかったデバイスに接続を試みる.第三引数には接続後に呼ばれるBluetoothGattCallbackを指定する.
-                    result.device.connectGatt(applicationContext, false, mBluetoothGattCallback)
-                    val msg = "name =" + result.device.name + ", bondState = " + result.device.bondState +
-                            ", address = " + result.device.address + ", type" + result.device.type +
-                            ", uuid = " + Arrays.toString(result.device.uuids)
-                    Log.d("Scan", msg)
-
-                    val list: Array<String> = arrayOf(result.device.name.toString(),
-                            result.device.bondState.toString(), result.device.address.toString(),
-                            result.device.type.toString(), Arrays.toString(result.device.uuids))
-                    sendBroadCastToMainActivity(list)
-                }
-            }
-
-            override fun onBatchScanResults(results: List<ScanResult>) {
-                super.onBatchScanResults(results)
-            }
-
-            override fun onScanFailed(errorCode: Int) {
-                super.onScanFailed(errorCode)
-            }
-        }
 
         connect()
         mHandler = Handler()
