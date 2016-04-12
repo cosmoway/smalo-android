@@ -357,12 +357,12 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                         setStatus(BleStatus.CHARACTERISTIC_NOT_FOUND)
                         Log.d(TAG, "onServicesDiscovered characteristic:null")
                     }
-                    if (readCharacteristic!=null) {
+                    if (readCharacteristic != null) {
                         // キャラクタリスティックを見つけた
                         Log.d(TAG, "onServicesDiscovered characteristic:" + READ_CHAR_UUID)
                         gatt.readCharacteristic(readCharacteristic)
                     }
-                    if (notifyCharacteristic!=null) {
+                    if (notifyCharacteristic != null) {
                         // 通知
                         Log.d(TAG, "onServicesDiscovered characteristic:" + NOTIFY_CHAR_UUID)
                         // Notification を要求する
