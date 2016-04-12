@@ -23,6 +23,7 @@ class MainActivity : ListActivity(), View.OnClickListener {
     private var mIntentFilter: IntentFilter? = null
     private var mStartButton: Button? = null
     private var mStopButton: Button? = null
+    private var mMessage: String? = null
 
     //スリープモードからの復帰の為のフラグ定数
     private val FLAG_KEYGUARD = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
@@ -33,11 +34,14 @@ class MainActivity : ListActivity(), View.OnClickListener {
         override fun handleMessage(msg: Message) {
 
             val bundle = msg.data
-            val message: Array<String> = bundle.getStringArray("state")
+            val state: Array<String> = bundle.getStringArray("state")
+            val message: String = bundle.getString("message")
             val lv: ListView = findViewById(R.id.list1) as ListView
-            val adapter: ArrayAdapter<String> = ArrayAdapter(this@MainActivity, android.R.layout.simple_list_item_1, message)
+            val adapter: ArrayAdapter<String> = ArrayAdapter(this@MainActivity,
+                    android.R.layout.simple_list_item_1, state)
             listAdapter = adapter
             lv.adapter
+            mMessage = message
         }
     }
 

@@ -14,11 +14,13 @@ class MyBroadcastReceiver : BroadcastReceiver() {
 
         val bundle = intent.extras
         val state = bundle.getStringArray("state")
+        val message = bundle.getString("message")
 
         if (sHandler != null) {
             val msg = Message()
             val data = Bundle()
             data.putStringArray("state", state)
+            data.putString("message", message)
             msg.data = data
             sHandler!!.sendMessage(msg)
         }

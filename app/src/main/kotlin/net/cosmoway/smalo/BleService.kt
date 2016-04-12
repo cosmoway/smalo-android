@@ -124,10 +124,11 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
     }
 
     // 表示する値をアクティビティに投げる
-    private fun sendBroadCastToMainActivity(state: Array<String>) {
+    private fun sendBroadCastToMainActivity(state: Array<String>?, message: String?) {
         Log.d(TAG, "sendBroadCastToMainActivity")
         val broadcastIntent: Intent = Intent()
         broadcastIntent.putExtra("state", state)
+        broadcastIntent.putExtra("message", message)
         broadcastIntent.action = "UPDATE_ACTION"
         baseContext.sendBroadcast(broadcastIntent)
     }
@@ -170,7 +171,7 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                         val list: Array<String> = arrayOf(result.device.name.toString(),
                                 result.device.bondState.toString(), result.device.address.toString(),
                                 result.device.type.toString(), Arrays.toString(result.device.uuids))
-                        sendBroadCastToMainActivity(list)
+                        sendBroadCastToMainActivity(list,null)
                     }
                 }
 
@@ -297,7 +298,7 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
             Log.d("Scan", msg)
             val list: Array<String> = arrayOf(device.name.toString(), device.bondState.toString(),
                     device.address.toString(), device.type.toString(), Arrays.toString(device.uuids))
-            sendBroadCastToMainActivity(list)
+            sendBroadCastToMainActivity(list,null)
         }
     }
 
@@ -329,7 +330,8 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                 } else {
                     // サービスを見つけた
                     setStatus(BleStatus.SERVICE_FOUND)
-                    Log.d(TAG, "onServicesDiscovered characteristic:Found" + service.uuid)
+                    Log.d(TAG, "onServicesDiscovered characteristic:Found" +
+                            service.characteristics.toString())
 
                     val writeCharacteristic: BluetoothGattCharacteristic
                             = service.getCharacteristic(UUID.fromString(WRITE_CHAR_UUID))
@@ -393,6 +395,8 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
             Log.d(TAG, "GATTStatus:" + status)
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.d(TAG, "onCharacteristicRead: " + characteristic.getStringValue(0))
+                // 受け取ったメッセージを、アクティビティに投げる
+                sendBroadCastToMainActivity(null,mReceivedMessage)
                 // 受け取ったメッセージ取得
                 mReceivedMessage = characteristic.getStringValue(0)
                 // 受け取ったメッセージ記憶
