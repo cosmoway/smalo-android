@@ -141,6 +141,10 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
         Log.d(TAG, "created")
         mBluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         mBluetoothAdapter = mBluetoothManager?.adapter
+        // 受け取ったメッセージの箱
+        mSp = PreferenceManager.getDefaultSharedPreferences(this@BleService)
+        // 受け取ったメッセージ読出
+        mReceivedMessage = mSp?.getString("SaveMessage", null)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mBluetoothLeScanner = mBluetoothAdapter?.bluetoothLeScanner
             mScanCallback = object : ScanCallback() {
@@ -329,21 +333,28 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
                         // キャラクタリスティックを見つけた
                         Log.d(TAG, "onServicesDiscovered characteristic:" + characteristic.uuid)
                         // 値書き込み
-                        /*val value: String = "安以宇衣於"
+                        /*var value: String
+                        if (mReceivedMessage == "open") {
+                            value = "close"
+                        } else if (mReceivedMessage == "close") {
+                            value = "open"
+                        } else {
+                            value = "unknown"
+                        }
                         characteristic.setValue(value.toString())
                         Log.d(TAG, value.toString())
                         gatt.writeCharacteristic(characteristic)*/
 
                         // 値読み取り
-                        //gatt.readCharacteristic(characteristic)
+                        // gatt.readCharacteristic(characteristic)
 
                         // 通知
                         // Notification を要求する
                         val registered = gatt.setCharacteristicNotification(characteristic, true)
 
                         // Characteristic の Notification 有効化
-                        val descriptor: BluetoothGattDescriptor = characteristic.getDescriptor(
-                                UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG))
+                        val descriptor: BluetoothGattDescriptor = characteristic.getDescriptor(UUID
+                                .fromString(CLIENT_CHARACTERISTIC_CONFIG))
                         descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
                         gatt.writeDescriptor(descriptor)
 
@@ -366,6 +377,10 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
             Log.d(TAG, "GATTStatus:" + status)
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.d(TAG, "onCharacteristicRead: " + characteristic.getStringValue(0))
+                // 受け取ったメッセージ取得
+                mReceivedMessage = characteristic.getStringValue(0)
+                // 受け取ったメッセージ記憶
+                mSp?.edit()?.putString("SaveMessage", mReceivedMessage)?.apply()
             }
         }
 
