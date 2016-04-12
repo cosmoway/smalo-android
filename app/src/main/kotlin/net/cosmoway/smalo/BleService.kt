@@ -4,9 +4,13 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.bluetooth.*
+import android.bluetooth.le.BluetoothLeScanner
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.PowerManager
@@ -24,8 +28,10 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
     private var mStatus = BleStatus.DISCONNECTED
     private var mHandler: Handler? = null
     private var mBluetoothAdapter: BluetoothAdapter? = null
+    private var mBluetoothLeScanner: BluetoothLeScanner? = null
     private var mBluetoothManager: BluetoothManager? = null
     private var mBluetoothGatt: BluetoothGatt? = null
+    private var mScanCallback: ScanCallback? = null
 
     // UUID設定用
     private var mId: String? = null
@@ -39,20 +45,20 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
          */
         private val SCAN_PERIOD: Long = 10000
         /**
-         * 検索機器の機器名
+         * 検索対象機器の機器名
          */
-        private val DEVICE_NAME = "EdisonLocalName"
+        private val DEVICE_NAME = "smalo"
         /**
-         * 対象のサービスUUID
+         * 検索対象機器のサービスUUID
          */
-        private val SERVICE_UUID = "00002800-0000-1000-8000-00805f9b34fb"
+        private val SERVICE_UUID = "00002801-0000-1000-8000-00805f9b34fb"
         /**
-         * 対象のキャラクタリスティックUUID
+         * 検索対象のキャラクタリスティックUUID
          */
         private val DEVICE_BUTTON_SENSOR_CHARACTERISTIC_UUID =
-        //        "00003333-0000-1000-8000-00805f9b34fb" // 読み取り用
-        //        "13333333-3333-3333-3333-333333330003" // 書き込み用
-        "13333333-3333-3333-3333-333333330001" // 通知用
+                //        "00003333-0000-1000-8000-00805f9b34fb" // 読み取り用
+                //        "13333333-3333-3333-3333-333333330003" // 書き込み用
+                "13333333-3333-3333-3333-333333330001" // 通知用
         /**
          * キャラクタリスティック設定UUID
          */
@@ -90,7 +96,7 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
         val contentIntent = PendingIntent.getActivity(this@BleService, 0,
                 notificationIntent, 0)
 
-        builder.setContentTitle(title) // 1行目
+        builder.setContentTitle(title.toString()) // 1行目
         if (title.indexOf("200") != -1) {
             builder.setContentText("解錠されました。")
         } else if (title == "Connection Error") {
@@ -134,7 +140,38 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
         super.onCreate()
         Log.d(TAG, "created")
         mBluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        mBluetoothAdapter = mBluetoothManager!!.adapter
+        mBluetoothAdapter = mBluetoothManager?.adapter
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mBluetoothLeScanner = mBluetoothAdapter?.bluetoothLeScanner
+            mScanCallback = object : ScanCallback() {
+                override fun onScanResult(callbackType: Int, result: ScanResult) {
+                    if (DEVICE_NAME == result.device.name) {
+                        setStatus(BleStatus.DEVICE_FOUND)
+                        // 省電力のためスキャンを停止する
+                        stopScanByBleScanner()
+                        // スキャン中に見つかったデバイスに接続を試みる.第三引数には接続後に呼ばれるBluetoothGattCallbackを指定する.
+                        result.device.connectGatt(applicationContext, false, mBluetoothGattCallback)
+                        val msg = "name =" + result.device.name + ", bondState = " + result.device.bondState +
+                                ", address = " + result.device.address + ", type" + result.device.type +
+                                ", uuid = " + Arrays.toString(result.device.uuids)
+                        Log.d("Scan", msg)
+
+                        val list: Array<String> = arrayOf(result.device.name.toString(),
+                                result.device.bondState.toString(), result.device.address.toString(),
+                                result.device.type.toString(), Arrays.toString(result.device.uuids))
+                        sendBroadCastToMainActivity(list)
+                    }
+                }
+
+                override fun onBatchScanResults(results: List<ScanResult>) {
+                    super.onBatchScanResults(results)
+                }
+
+                override fun onScanFailed(errorCode: Int) {
+                    super.onScanFailed(errorCode)
+                }
+            }
+        }
 
         // 端末固有識別番号の箱
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
@@ -165,6 +202,11 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "destroy")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            stopScanByBleScanner()
+        } else {
+            mBluetoothAdapter?.stopLeScan(this)
+        }
 
         disconnect()
         mWakeLock?.release()
@@ -173,18 +215,28 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
+
     /**
      * BLE機器を検索する
      */
     private fun connect() {
         mHandler?.postDelayed({
-            mBluetoothAdapter?.stopLeScan(this)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                stopScanByBleScanner()
+            } else {
+                mBluetoothAdapter?.stopLeScan(this)
+            }
             if (BleStatus.SCANNING == mStatus) {
                 setStatus(BleStatus.SCAN_FAILED)
             }
         }, SCAN_PERIOD)
-        mBluetoothAdapter!!.stopLeScan(this)
-        mBluetoothAdapter!!.startLeScan(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            stopScanByBleScanner()
+            startScanByBleScanner()
+        } else {
+            mBluetoothAdapter!!.stopLeScan(this)
+            mBluetoothAdapter!!.startLeScan(this)
+        }
         setStatus(BleStatus.SCANNING)
     }
 
@@ -193,6 +245,11 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
      * BLE 機器との接続を解除する
      */
     private fun disconnect() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            stopScanByBleScanner()
+        } else {
+            mBluetoothAdapter?.stopLeScan(this)
+        }
         if (mBluetoothGatt != null) {
             mBluetoothGatt!!.close()
             mBluetoothGatt = null
@@ -200,12 +257,27 @@ class BleService : Service(), BluetoothAdapter.LeScanCallback {
         }
     }
 
+    private fun startScanByBleScanner() {
+        mBluetoothLeScanner = mBluetoothAdapter?.bluetoothLeScanner
+        // デバイスの検出.
+        mBluetoothLeScanner?.startScan(mScanCallback)
+    }
+
+    private fun stopScanByBleScanner() {
+        // デバイスの検出.
+        mBluetoothLeScanner?.stopScan(mScanCallback)
+    }
+
     override fun onLeScan(device: BluetoothDevice, rssi: Int, scanRecord: ByteArray) {
         Log.d(TAG, "device found:" + device.name)
         if (DEVICE_NAME == device.name) {
             setStatus(BleStatus.DEVICE_FOUND)
             // 省電力のためスキャンを停止する
-            mBluetoothAdapter!!.stopLeScan(this)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                stopScanByBleScanner()
+            } else {
+                mBluetoothAdapter?.stopLeScan(this)
+            }
             // GATT接続を試みる
             mBluetoothGatt = device.connectGatt(this, false, mBluetoothGattCallback)
             val msg = "name =" + device.name + ", bondState = " + device.bondState +
