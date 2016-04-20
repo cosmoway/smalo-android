@@ -56,29 +56,62 @@ class MainActivity : Activity(), View.OnClickListener {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+    private fun animationStart() {
+        mAnimatorSet1?.start()
+        mAnimatorSet2?.start()
+        mAnimatorSet3?.start()
+    }
 
+    private fun animationEnd() {
+        mAnimatorSet1?.end()
+        mAnimatorSet2?.end()
+        mAnimatorSet3?.end()
+    }
+
+    private fun findViews() {
         mOval1 = findViewById(R.id.oval1) as ImageView
         mOval2 = findViewById(R.id.oval2) as ImageView
         mOval3 = findViewById(R.id.oval3) as ImageView
         mStartButton = findViewById(R.id.btn_start) as Button
         mStopButton = findViewById(R.id.btn_stop) as Button
         mLockButton = findViewById(R.id.btn_lock) as ImageButton
+    }
+
+    private fun setOnClickListeners() {
         mStartButton?.setOnClickListener(this)
         mStopButton?.setOnClickListener(this)
         mLockButton?.setOnClickListener(this)
+    }
 
+    private fun setAnimators() {
         mAnimatorSet1 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval1) as AnimatorSet;
         mAnimatorSet2 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval2) as AnimatorSet;
         mAnimatorSet3 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval3) as AnimatorSet;
         (mAnimatorSet1 as AnimatorSet).setTarget(mOval1);
         (mAnimatorSet2 as AnimatorSet).setTarget(mOval2);
         (mAnimatorSet3 as AnimatorSet).setTarget(mOval3);
+    }
+
+    fun onUnLock() {
+        mLockButton?.setImageResource(R.drawable.smalo_open_button)
+        animationEnd()
+    }
+
+    fun onLock() {
+        mLockButton?.setImageResource(R.drawable.smalo_close_button)
+        animationEnd()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        findViews()
+        setOnClickListeners()
+        setAnimators()
+
 
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            //Toast.makeText(this, "ママのオッパイでも吸ってろw", Toast.LENGTH_SHORT).show(); //ウソです。
             Toast.makeText(this, "BLE非対応端末です", Toast.LENGTH_SHORT).show();
             finish();
         }
@@ -146,20 +179,14 @@ class MainActivity : Activity(), View.OnClickListener {
         if (v == mStartButton) {
             Log.d("Button", "Start")
             startService(Intent(this, SesameBeaconService::class.java))
-            mAnimatorSet1?.start()
-            mAnimatorSet2?.start()
-            mAnimatorSet3?.start()
+            animationStart()
         } else if (v == mStopButton) {
             Log.d("Button", "Stop")
             stopService(Intent(this, SesameBeaconService::class.java))
-            mAnimatorSet1?.end()
-            mAnimatorSet2?.end()
-            mAnimatorSet3?.end()
+            animationEnd()
         } else if (v == mLockButton) {
             Log.d("Button", "Lock")
-            mAnimatorSet1?.start()
-            mAnimatorSet2?.start()
-            mAnimatorSet3?.start()
+            animationStart()
         }
     }
 }
