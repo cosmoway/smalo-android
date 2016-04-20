@@ -53,6 +53,11 @@ class MainActivity : ListActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, "BLE未対応端末です", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
         requestLocationPermission()
 
         //permission check
@@ -87,6 +92,7 @@ class MainActivity : ListActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this@MainActivity,
                         Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Bluetoothの利用が許可されておりません。", Toast.LENGTH_LONG).show()
             return
         }
 
