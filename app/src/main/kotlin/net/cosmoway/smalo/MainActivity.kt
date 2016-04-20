@@ -56,6 +56,25 @@ class MainActivity : Activity(), View.OnClickListener {
         }
     }
 
+    private fun requestBatteryPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val pm = getSystemService(POWER_SERVICE) as PowerManager
+            val packageName = packageName
+            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                AlertDialog.Builder(this)
+                        .setTitle("確認")
+                        .setMessage("本アプリが正常に動作する為には、電池の最適化の解除が必要です。"
+                                + "\nなお、最適化状態時は、本アプリの動作に影響が発生します。")
+                        .setPositiveButton("OK") { dialog, which ->
+                            val intent = Intent(
+                                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                            intent.data = Uri.parse("package:" + packageName)
+                            startActivityForResult(intent, REQUEST_PERMISSION)
+                        }.show()
+            }
+        }
+    }
+
     private fun animationStart() {
         mOval4?.visibility = View.GONE
         mOval5?.visibility = View.GONE
