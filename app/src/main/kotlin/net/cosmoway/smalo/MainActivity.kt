@@ -57,6 +57,8 @@ class MainActivity : Activity(), View.OnClickListener {
     }
 
     private fun animationStart() {
+        mOval4?.visibility = View.GONE
+        mOval5?.visibility = View.GONE
         mAnimatorSet1?.start()
         mAnimatorSet2?.start()
         mAnimatorSet3?.start()
@@ -72,6 +74,8 @@ class MainActivity : Activity(), View.OnClickListener {
         mOval1 = findViewById(R.id.oval1) as ImageView
         mOval2 = findViewById(R.id.oval2) as ImageView
         mOval3 = findViewById(R.id.oval3) as ImageView
+        mOval4 = findViewById(R.id.oval4) as ImageView
+        mOval5 = findViewById(R.id.oval5) as ImageView
         mStartButton = findViewById(R.id.btn_start) as Button
         mStopButton = findViewById(R.id.btn_stop) as Button
         mLockButton = findViewById(R.id.btn_lock) as ImageButton

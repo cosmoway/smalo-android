@@ -7,15 +7,12 @@
     android:orientation="vertical"
     tools:context="net.cosmoway.smalo.MainActivity">
 
-    <TextView
-        android:id="@+id/txt"
+    <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:padding="40dp"
-        android:text="@string/app_name"
-        android:textColor="@android:color/white"
-        android:textSize="20dp" />
+        android:padding="64dp"
+        android:src="@drawable/smalo_title" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -57,6 +54,22 @@
         android:layout_height="1dp"
         android:layout_gravity="center"
         android:src="@drawable/oval" />
+
+    <ImageView
+        android:id="@+id/oval4"
+        android:layout_width="192dp"
+        android:layout_height="192dp"
+        android:layout_gravity="center"
+        android:src="@drawable/oval4"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/oval5"
+        android:layout_width="192dp"
+        android:layout_height="192dp"
+        android:layout_gravity="center"
+        android:src="@drawable/oval5"
+        android:visibility="gone" />
 
     <ImageButton
         android:id="@+id/btn_lock"
