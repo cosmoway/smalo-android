@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- ボタンが押されていない＆フォーカスされていない場合 -->
+    <item>
+        <!--
+            *shapeタグで形状を指定 oval：楕円形
+            *楕円の形はactivity_mainでwidthとheightをそれぞれ100dpに設定
+        -->
+        <shape android:shape="oval">
+            <!-- solidタグで色指定 -->
+            <solid android:color="#0071bc" />
+        </shape>
+    </item>
+</selector>
