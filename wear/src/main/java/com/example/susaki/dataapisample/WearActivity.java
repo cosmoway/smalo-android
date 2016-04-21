@@ -87,9 +87,7 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     public void onClick(View viewHolder) {
         if (viewHolder.equals(button)) {
             if(doorState == unknown) {
-                Log.d(TAG, "鍵確認");
-                //データを更新するメソッドを呼ぶ
-                sendDataByMessageApi(String.valueOf(getState));
+                Log.d(TAG, "サーチ中");
             }else if(doorState == close || doorState == open){
                 Log.d(TAG, "開閉要求");
                 sendDataByMessageApi(String.valueOf(stateUpdate));
