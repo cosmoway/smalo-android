@@ -23,10 +23,10 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     private GoogleApiClient googleApiClient = null;
     private Button button;
     private LinearLayout linearLayout;
-    private int message;
+    private String message;
     private final int wakeState = 0 , getState = 1 , stateUpdate = 2;
     final int unknown = 10 , close = 11 ,open = 12;
-    private int doorState = unknown;
+    private String doorState = "unknown";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +46,7 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
                 .build();
 
         //データ更新をするメソッドを呼ぶ
-        sendDataByMessageApi(String.valueOf(wakeState));
+        sendDataByMessageApi("wakeState");
     }
 
     @Override
@@ -86,14 +86,14 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     @Override
     public void onClick(View viewHolder) {
         if (viewHolder.equals(button)) {
-            if(doorState == unknown) {
+            if(doorState.equals("unknown")) {
                 Log.d(TAG, "サーチ中");
-            }else if(doorState == close || doorState == open){
+            }else if(doorState.equals("close") || doorState.equals("open")){
                 Log.d(TAG, "開閉要求");
-                sendDataByMessageApi(String.valueOf(stateUpdate));
-                if(doorState == open) {
+                sendDataByMessageApi("stateUpdate");
+                if(doorState.equals("open")) {
                     linearLayout.setBackgroundResource(R.drawable.shape_yellow);
-                }else if(doorState == close){
+                }else if(doorState.equals("close")){
                     linearLayout.setBackgroundResource(R.drawable.shape_blue);
                 }
             }
@@ -126,12 +126,12 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
             runOnUiThread(new Runnable(){
                 @Override
                 public void run(){
-                    message = Integer.parseInt(new String(messageEvents.getData()));
+                    message = new String(messageEvents.getData());
                     doorState = message;
-                    Log.d(""+message,"動いた");
-                    if(message == close) {
+                    Log.d(message,"動いた");
+                    if(message.equals("close")) {
                         button.setBackgroundResource(R.drawable.smalo_close_button);
-                    }else if(message == open) {
+                    }else if(message.equals("open")) {
                         button.setBackgroundResource(R.drawable.smalo_open_button);
                     }
 

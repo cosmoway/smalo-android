@@ -19,18 +19,18 @@ public class HandheldService extends WearableListenerService implements GoogleAp
 
     private GoogleApiClient googleApiClient = null;
 
-    int message;
+    String message;
     final int wakeState = 0 , getState = 1 , stateUpdate = 2;
     final int unknown = 10 , close = 11 ,open = 12;
     //TODO 動作確認のために初期設定close 実装時はunknownにする
-    int doorState;
+    String doorState;
 
     @Override
     public void onCreate(){
         super.onCreate();
         Log.d("スマホサービス","onCreate");
 
-        doorState = unknown;
+        doorState = "open";
         Log.d("ステート","初期化");
 
         googleApiClient = new GoogleApiClient
@@ -61,20 +61,20 @@ public class HandheldService extends WearableListenerService implements GoogleAp
     @Override
     public void onMessageReceived(MessageEvent messageEvents){
         if(messageEvents.getPath().equals("/data_comm2")){
-            message = Integer.parseInt(new String(messageEvents.getData()));
-            Log.d(""+message,"受け取ったメッセージ");
+            message = new String(messageEvents.getData());
+            Log.d(message,"受け取ったメッセージ");
 
             //取得した内容によって処理
-            if(message == getState || message == wakeState){
+            if(message.equals("getState") || message.equals("wakeState")){
                 //TODO 鍵の情報の取得　wearに状態を表示させるための処理
                 //TODO doorStateに結果を代入
                 Log.d("データ","送信");
-                sendDataByMessageApi(String.valueOf(doorState));
-            }else if(message == stateUpdate){
-                if(doorState != unknown) {
+                sendDataByMessageApi(doorState);
+            }else if(message.equals("stateUpdate")){
+                if(doorState.equals("open") || doorState.equals("close")) {
                     //TODO 解錠施錠要求の送信　処理結果をwearに返す
                     //TODO doorStateに結果を代入
-                    sendDataByMessageApi(String.valueOf(doorState));
+                    sendDataByMessageApi(doorState);
                 }
             }else{
                 Log.d("要求","通ってない");
