@@ -23,13 +23,8 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
-public class HandheldActivity extends AppCompatActivity implements
-        GoogleApiClient.ConnectionCallbacks , GoogleApiClient.OnConnectionFailedListener , OnClickListener{
+public class HandheldActivity extends AppCompatActivity {
 
-    GoogleApiClient googleApiClient;
-    TextView textView;
-    private String text;
-    private Button button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,73 +32,16 @@ public class HandheldActivity extends AppCompatActivity implements
         Log.d("onCreate","実行");
         this.setContentView(R.layout.activity_handheld);
 
-        textView = (TextView)findViewById(R.id.text);
-        button = (Button)findViewById(R.id.handheldButton);
-        button.setOnClickListener(this);
-
-        googleApiClient = new GoogleApiClient
-                .Builder(this)
-                .addApi(Wearable.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
     }
 
     @Override
     protected void onResume(){
         super.onResume();
-        googleApiClient.connect();
     }
 
     @Override
     protected void onPause(){
         super.onPause();
-        if(googleApiClient != null && googleApiClient.isConnected()){
-            googleApiClient.disconnect();
-        }
     }
 
-    //検証用ボタン　あとで消す
-    @Override
-    public void onClick(View v){
-        Log.d("アクティビティ","ボタン");
-        if (v.equals(button)){
-            Log.d("アクティビティ","ボタン押した");
-            sendDataByMessageApi("11");
-        }
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        Log.d("TAG", "onConnected");
-        sendDataByMessageApi("11");
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Log.d("TAG", "onConnectionSuspended");
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.e("TAG", "onConnectionFailed: " + connectionResult);
-    }
-    //データを更新
-    void sendDataByMessageApi(final String message) {
-        Log.d("アクティビティ","メッセージ送信");
-        new Thread(new Runnable(){
-            @Override
-            public void run(){
-                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
-                for(Node node : nodes.getNodes()){
-                    Wearable.MessageApi.sendMessage(googleApiClient , node.getId() , "/data_comm" , message.getBytes());
-                }
-            }
-        }).start();
-//        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/data_wear");
-//        putDataMapReq.getDataMap().putInt("key_wear", text);
-//        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-//        Wearable.DataApi.putDataItem(googleApiClient, putDataReq);
-        //Log.d(TAG, "データ送信");
-    }
 }

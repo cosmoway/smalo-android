@@ -80,19 +80,21 @@ public class HandheldService extends WearableListenerService implements GoogleAp
 
             //取得した内容によって処理
             if(message == getState || message == wakeState){
-                //TODO 鍵の情報の取得
+                //TODO 鍵の情報の取得　wearに状態を表示させるための処理
+                //TODO doorStateに結果を代入
                 Log.d("データ","送信");
                 sendDataByMessageApi(String.valueOf(doorState));
             }else if(message == stateUpdate){
                 if(doorState != unknown) {
-                    //TODO 解錠施錠要求の送信
-                    if(doorState == close){
-                        Log.d("鍵","あけた");
-                        doorState = open;
-                    }else if(doorState == open){
-                        Log.d("鍵","しめた");
-                        doorState = close;
-                    }
+                    //TODO 解錠施錠要求の送信　処理結果をwearに返す
+                    //TODO doorStateに結果を代入
+//                    if(doorState == close){
+//                        Log.d("鍵","あけた");
+//                        doorState = open;
+//                    }else if(doorState == open){
+//                        Log.d("鍵","しめた");
+//                        doorState = close;
+//                    }
                     sendDataByMessageApi(String.valueOf(doorState));
                 }
             }else{
