@@ -14,6 +14,7 @@ import android.net.wifi.WifiManager
 import android.os.*
 import android.provider.Settings
 import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.View
@@ -69,9 +70,8 @@ class MainActivity : Activity(), View.OnClickListener {
         mAnimatorSet3?.end()
     }
 
-    // サービスから値を受け取ったら動かしたい内容を書く
+    // サービスから値を受け取った時に動かしたい内容を書く
     private val updateHandler = object : Handler() {
-
 
         override fun handleMessage(msg: Message) {
             val bundle = msg.data
@@ -173,6 +173,7 @@ class MainActivity : Activity(), View.OnClickListener {
 
         requestLocationPermission()
         requestBatteryPermission()
+        requestAccessStoragePermission()
 
         //permission check
         val wifiManager: WifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -191,6 +192,21 @@ class MainActivity : Activity(), View.OnClickListener {
         registerReceiver(mReceiver, mIntentFilter)
 
         (mReceiver as MyBroadcastReceiver).registerHandler(updateHandler)
+    }
+
+    private fun requestAccessStoragePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            //許可を求めるダイアログを表示します。
+            AlertDialog.Builder(this)
+                    .setTitle("確認")
+                    .setMessage("通知音を鳴らすには、\n"
+                            + "本アプリに対する記憶装置へのアクセス許可発行が必要です。")
+                    .setPositiveButton("OK") { dialog, which ->
+                        ActivityCompat.requestPermissions(this,
+                                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 0)
+                    }.show()
+        }
     }
 
     override fun onStop() {
