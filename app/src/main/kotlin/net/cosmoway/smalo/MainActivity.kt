@@ -9,9 +9,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.net.wifi.WifiManager
-import android.os.Bundle
+import android.os.*
+import android.provider.Settings
 import android.support.v4.app.ActivityCompat
+import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -23,9 +26,8 @@ import android.widget.Toast
 
 class MainActivity : Activity(), View.OnClickListener {
 
-    //スリープモードからの復帰の為のフラグ定数
-    private val FLAG_KEYGUARD = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
     private var mReceiver: SesameBroadcastReceiver? = null
+    private var mMessage: String? = null
     private var mIntentFilter: IntentFilter? = null
     private var mStartButton: Button? = null
     private var mStopButton: Button? = null
@@ -36,14 +38,47 @@ class MainActivity : Activity(), View.OnClickListener {
     private var mOval1: ImageView? = null
     private var mOval2: ImageView? = null
     private var mOval3: ImageView? = null
+    private var mOval4: ImageView? = null
+    private var mOval5: ImageView? = null
+
+    companion object {
+        val KEY: String = "key"
+        //スリープモードからの復帰の為のフラグ定数
+        private val FLAG_KEYGUARD =
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
+                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        private val REQUEST_PERMISSION = 1
+        private val TAG = "MainActivity"
+    }
 
     // サービスから値を受け取ったら動かしたい内容を書く
-    /*private val updateHandler = object : Handler() {
-         override fun handleMessage(msg: Message) {
-
-             val bundle = msg.data
-         }
-     }*/
+    private val updateHandler = object : Handler() {
+        override fun handleMessage(msg: Message) {
+            val bundle = msg.data
+            mMessage = bundle.getString("state")
+            Log.d(TAG, "message:$mMessage")
+            if (mMessage == " locked") {
+                Log.d(TAG, "message:L")
+                animationEnd()
+                mLockButton?.setImageResource(R.drawable.smalo_open_button)
+                mLockButton?.isEnabled = true
+                mOval4?.visibility = View.VISIBLE
+            } else if (mMessage == "unlocked") {
+                Log.d(TAG, "message:UL")
+                animationEnd()
+                mLockButton?.setImageResource(R.drawable.smalo_close_button)
+                mLockButton?.isEnabled = true
+                mOval5?.visibility = View.VISIBLE
+            } else if (mMessage == "unknown") {
+                Log.d(TAG, "message:UK")
+                mLockButton?.setImageResource(R.drawable.smalo_search_icon)
+                mLockButton?.isEnabled = false
+                mOval4?.visibility = View.GONE
+                mOval5?.visibility = View.GONE
+            }
+        }
+    }
 
     private fun requestLocationPermission() {
         // 位置情報サーヴィス を利用可能か
@@ -76,6 +111,7 @@ class MainActivity : Activity(), View.OnClickListener {
     }
 
     private fun animationStart() {
+        Log.d(TAG, "animStart")
         mOval4?.visibility = View.GONE
         mOval5?.visibility = View.GONE
         mAnimatorSet1?.start()
@@ -84,6 +120,7 @@ class MainActivity : Activity(), View.OnClickListener {
     }
 
     private fun animationEnd() {
+        Log.d(TAG, "animEnd")
         mAnimatorSet1?.end()
         mAnimatorSet2?.end()
         mAnimatorSet3?.end()
@@ -98,6 +135,7 @@ class MainActivity : Activity(), View.OnClickListener {
         mStartButton = findViewById(R.id.btn_start) as Button
         mStopButton = findViewById(R.id.btn_stop) as Button
         mLockButton = findViewById(R.id.btn_lock) as ImageButton
+        mLockButton?.isEnabled = false
     }
 
     private fun setOnClickListeners() {
@@ -115,16 +153,6 @@ class MainActivity : Activity(), View.OnClickListener {
         (mAnimatorSet3 as AnimatorSet).setTarget(mOval3);
     }
 
-    fun onUnLock() {
-        mLockButton?.setImageResource(R.drawable.smalo_open_button)
-        animationEnd()
-    }
-
-    fun onLock() {
-        mLockButton?.setImageResource(R.drawable.smalo_close_button)
-        animationEnd()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -133,13 +161,13 @@ class MainActivity : Activity(), View.OnClickListener {
         setOnClickListeners()
         setAnimators()
 
-
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "BLE非対応端末です", Toast.LENGTH_SHORT).show();
             finish();
         }
 
         requestLocationPermission()
+        requestBatteryPermission()
 
         //permission check
         val wifiManager: WifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -157,7 +185,7 @@ class MainActivity : Activity(), View.OnClickListener {
         (mIntentFilter as IntentFilter).addAction("UPDATE_ACTION")
         registerReceiver(mReceiver, mIntentFilter)
 
-        //(mReceiver as SesameBroadcastReceiver).registerHandler(updateHandler)
+        (mReceiver as SesameBroadcastReceiver).registerHandler(updateHandler)
     }
 
     override fun onStop() {
@@ -201,14 +229,31 @@ class MainActivity : Activity(), View.OnClickListener {
     override fun onClick(v: View?) {
         if (v == mStartButton) {
             Log.d("Button", "Start")
-            startService(Intent(this, SesameBeaconService::class.java))
+            val intent: Intent = Intent(this, SesameBeaconService::class.java)
+            intent.putExtra(KEY, "")
+            startService(intent)
             animationStart()
         } else if (v == mStopButton) {
             Log.d("Button", "Stop")
-            stopService(Intent(this, SesameBeaconService::class.java))
+            val intent: Intent = Intent(this, SesameBeaconService::class.java)
+            intent.putExtra(KEY, "")
+            stopService(intent)
             animationEnd()
+            mLockButton?.setImageResource(R.drawable.smalo_search_icon)
+            mLockButton?.isEnabled = false
+            mOval4?.visibility = View.GONE
+            mOval5?.visibility = View.GONE
         } else if (v == mLockButton) {
             Log.d("Button", "Lock")
+            if (mMessage != null) {
+                val intent: Intent = Intent(this@MainActivity, SesameBeaconService::class.java)
+                if (mMessage == "locked") {
+                    intent.putExtra(KEY, "UnLock")
+                } else if (mMessage == "unlocked") {
+                    intent.putExtra(KEY, "Lock")
+                }
+                startService(intent)
+            }
             animationStart()
         }
     }

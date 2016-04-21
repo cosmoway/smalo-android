@@ -13,12 +13,12 @@ class SesameBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
 
         val bundle = intent.extras
-        val state = bundle.getStringArray("state")
+        val state = bundle.getString("state")
 
         if (sHandler != null) {
             val msg = Message()
             val data = Bundle()
-            data.putStringArray("state", state)
+            data.putString("state", state)
             msg.data = data
             sHandler!!.sendMessage(msg)
         }
