@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:padding="64dp"
+        android:padding="96dp"
         android:src="@drawable/smalo_title" />
 
     <LinearLayout
