@@ -4,7 +4,134 @@ import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 
-class MainActivity : Activity() {
+class MainActivity : Activity(), View.OnClickListener {
+
+    private var mReceiver: MyBroadcastReceiver? = null
+    private var mMessage: String? = null
+    private var mIsLocked: Boolean? = null
+    private var mIntentFilter: IntentFilter? = null
+    private var mStartButton: Button? = null
+    private var mStopButton: Button? = null
+    private var mLockButton: ImageButton? = null
+    private var mAnimatorSet1: AnimatorSet? = null
+    private var mAnimatorSet2: AnimatorSet? = null
+    private var mAnimatorSet3: AnimatorSet? = null
+    private var mOval1: ImageView? = null
+    private var mOval2: ImageView? = null
+    private var mOval3: ImageView? = null
+    private var mOval4: ImageView? = null
+    private var mOval5: ImageView? = null
+
+    companion object {
+        val KEY: String = "key"
+        //スリープモードからの復帰の為のフラグ定数
+        private val FLAG_KEYGUARD =
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
+                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        private val REQUEST_PERMISSION = 1
+        private val TAG = "MainActivity"
+    }
+
+    private fun animationStart() {
+        Log.d(TAG, "animStart")
+        mOval4?.visibility = View.GONE
+        mOval5?.visibility = View.GONE
+        mAnimatorSet1?.start()
+        mAnimatorSet2?.start()
+        mAnimatorSet3?.start()
+    }
+
+    private fun animationEnd() {
+        Log.d(TAG, "animEnd")
+        mAnimatorSet1?.end()
+        mAnimatorSet2?.end()
+        mAnimatorSet3?.end()
+    }
+
+    // サービスから値を受け取った時に動かしたい内容を書く
+    private val updateHandler = object : Handler() {
+
+        override fun handleMessage(msg: Message) {
+            val bundle = msg.data
+            mMessage = bundle.getString("state")
+            Log.d(TAG, "message:$mMessage")
+            if (mMessage == "locked" || (mMessage == "200 OK" && mIsLocked == false)) {
+                mIsLocked = true
+                Log.d(TAG, "message:L")
+                animationEnd()
+                mLockButton?.setImageResource(R.drawable.smalo_close_button)
+                mLockButton?.isEnabled = true
+                mOval4?.visibility = View.VISIBLE
+            } else if (mMessage == "unlocked" || (mMessage == "200 OK" && mIsLocked == true)) {
+                mIsLocked = false
+                Log.d(TAG, "message:UL")
+                animationEnd()
+                mLockButton?.setImageResource(R.drawable.smalo_open_button)
+                mLockButton?.isEnabled = true
+                mOval5?.visibility = View.VISIBLE
+            } else if (mMessage == "unknown") {
+                Log.d(TAG, "message:UK")
+                mLockButton?.setImageResource(R.drawable.smalo_search_icon)
+                mLockButton?.isEnabled = false
+                mOval4?.visibility = View.GONE
+                mOval5?.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun requestLocationPermission() {
+        // 位置情報サーヴィス を利用可能か
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+            //許可を求めるダイアログを表示します。
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), 0)
+        }
+    }
+
+    private fun requestBatteryPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val pm = getSystemService(POWER_SERVICE) as PowerManager
+            val packageName = packageName
+            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                AlertDialog.Builder(this)
+                        .setTitle("確認")
+                        .setMessage("本アプリが正常に動作する為には、電池の最適化の解除が必要です。"
+                                + "\nなお、最適化状態時は、本アプリの動作に影響が発生します。")
+                        .setPositiveButton("OK") { dialog, which ->
+                            val intent = Intent(
+                                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                            intent.data = Uri.parse("package:" + packageName)
+                            startActivityForResult(intent, REQUEST_PERMISSION)
+                        }.show()
+            }
+        }
+    }
+
+    private fun findViews() {
+        mOval1 = findViewById(R.id.oval1) as ImageView
+        mOval2 = findViewById(R.id.oval2) as ImageView
+        mOval3 = findViewById(R.id.oval3) as ImageView
+        mOval4 = findViewById(R.id.oval4) as ImageView
+        mOval5 = findViewById(R.id.oval5) as ImageView
+        mLockButton = findViewById(R.id.btn_lock) as ImageButton
+        mLockButton?.isEnabled = false
+    }
+
+    private fun setOnClickListeners() {
+        mLockButton?.setOnClickListener(this)
+    }
+
+    private fun setAnimators() {
+        mAnimatorSet1 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval1) as AnimatorSet;
+        mAnimatorSet2 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval2) as AnimatorSet;
+        mAnimatorSet3 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval3) as AnimatorSet;
+        (mAnimatorSet1 as AnimatorSet).setTarget(mOval1);
+        (mAnimatorSet2 as AnimatorSet).setTarget(mOval2);
+        (mAnimatorSet3 as AnimatorSet).setTarget(mOval3);
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -14,9 +141,44 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        window.addFlags(FLAG_KEYGUARD)
+
+        val intent: Intent = Intent(this, MyBeaconService::class.java)
+        intent.putExtra(KEY, "")
+        startService(intent)
+        animationStart()
     }
 
-    override fun onPause() {
-        super.onPause()
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(mReceiver)
+        if (mAnimatorSet1 != null) {
+            mAnimatorSet1?.end()
+            mAnimatorSet1 = null
+        }
+        if (mAnimatorSet2 != null) {
+            mAnimatorSet2?.end()
+            mAnimatorSet2 = null
+        }
+        if (mAnimatorSet3 != null) {
+            mAnimatorSet3?.end()
+            mAnimatorSet3 = null
+        }
+    }
+
+    override fun onClick(v: View?) {
+        if (v == mLockButton) {
+            Log.d("Button", "Lock")
+            if (mMessage != null) {
+                val intent: Intent = Intent(this@MainActivity, MyBeaconService::class.java)
+                if (mMessage == "locked") {
+                    intent.putExtra(KEY, "unlocking")
+                } else if (mMessage == "unlocked") {
+                    intent.putExtra(KEY, "locking")
+                }
+                startService(intent)
+            }
+            animationStart()
+        }
     }
 }

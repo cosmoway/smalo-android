@@ -29,7 +29,28 @@ class MyBeaconService : WearableListenerService(), GoogleApiClient.ConnectionCal
 
     override fun onCreate() {
         super.onCreate()
-        Log.d("スマホサービス", "onCreate")
+        Log.d(TAG_BEACON, "created")
+        //BTMのインスタンス化
+        mBeaconManager = BeaconManager.getInstanceForApplication(this)
+        mIsUnlocked = false
+
+        //Parserの設定
+        val IBEACON_FORMAT: String = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"
+        mBeaconManager?.beaconParsers?.add(BeaconParser().setBeaconLayout(IBEACON_FORMAT))
+
+        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        // 端末固有識別番号読出
+        mId = sp.getString("SaveString", null)
+        if (mId == null) {
+            Log.d("id", "null")
+            // 端末固有識別番号取得
+            mId = UUID.randomUUID().toString()
+            //mId = "2df60388-e96e-4945-93d0-a4836ee75a3c"
+            // 端末固有識別番号記憶
+            sp.edit().putString("SaveString", mId).apply()
+        }
+        val identifier: Identifier = Identifier.parse(MY_SERVICE_UUID)
+        Log.d("id", mId)
 
         mState = "open"
         Log.d("ステート", "初期化")
