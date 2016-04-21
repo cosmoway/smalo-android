@@ -26,8 +26,9 @@ import android.widget.Toast
 
 class MainActivity : Activity(), View.OnClickListener {
 
-    private var mReceiver: SesameBroadcastReceiver? = null
+    private var mReceiver: MyBroadcastReceiver? = null
     private var mMessage: String? = null
+    private var mIsLocked: Boolean? = null
     private var mIntentFilter: IntentFilter? = null
     private var mStartButton: Button? = null
     private var mStopButton: Button? = null
@@ -52,22 +53,42 @@ class MainActivity : Activity(), View.OnClickListener {
         private val TAG = "MainActivity"
     }
 
+    private fun animationStart() {
+        Log.d(TAG, "animStart")
+        mOval4?.visibility = View.GONE
+        mOval5?.visibility = View.GONE
+        mAnimatorSet1?.start()
+        mAnimatorSet2?.start()
+        mAnimatorSet3?.start()
+    }
+
+    private fun animationEnd() {
+        Log.d(TAG, "animEnd")
+        mAnimatorSet1?.end()
+        mAnimatorSet2?.end()
+        mAnimatorSet3?.end()
+    }
+
     // サービスから値を受け取ったら動かしたい内容を書く
     private val updateHandler = object : Handler() {
+
+
         override fun handleMessage(msg: Message) {
             val bundle = msg.data
             mMessage = bundle.getString("state")
             Log.d(TAG, "message:$mMessage")
-            if (mMessage == " locked") {
+            if (mMessage == "locked" || (mMessage == "200 OK" && mIsLocked == false)) {
+                mIsLocked = true
                 Log.d(TAG, "message:L")
                 animationEnd()
-                mLockButton?.setImageResource(R.drawable.smalo_open_button)
+                mLockButton?.setImageResource(R.drawable.smalo_close_button)
                 mLockButton?.isEnabled = true
                 mOval4?.visibility = View.VISIBLE
-            } else if (mMessage == "unlocked") {
+            } else if (mMessage == "unlocked" || (mMessage == "200 OK" && mIsLocked == true)) {
+                mIsLocked = false
                 Log.d(TAG, "message:UL")
                 animationEnd()
-                mLockButton?.setImageResource(R.drawable.smalo_close_button)
+                mLockButton?.setImageResource(R.drawable.smalo_open_button)
                 mLockButton?.isEnabled = true
                 mOval5?.visibility = View.VISIBLE
             } else if (mMessage == "unknown") {
@@ -108,22 +129,6 @@ class MainActivity : Activity(), View.OnClickListener {
                         }.show()
             }
         }
-    }
-
-    private fun animationStart() {
-        Log.d(TAG, "animStart")
-        mOval4?.visibility = View.GONE
-        mOval5?.visibility = View.GONE
-        mAnimatorSet1?.start()
-        mAnimatorSet2?.start()
-        mAnimatorSet3?.start()
-    }
-
-    private fun animationEnd() {
-        Log.d(TAG, "animEnd")
-        mAnimatorSet1?.end()
-        mAnimatorSet2?.end()
-        mAnimatorSet3?.end()
     }
 
     private fun findViews() {
@@ -180,12 +185,12 @@ class MainActivity : Activity(), View.OnClickListener {
             adapter.enable()
         }
 
-        mReceiver = SesameBroadcastReceiver()
+        mReceiver = MyBroadcastReceiver()
         mIntentFilter = IntentFilter()
         (mIntentFilter as IntentFilter).addAction("UPDATE_ACTION")
         registerReceiver(mReceiver, mIntentFilter)
 
-        (mReceiver as SesameBroadcastReceiver).registerHandler(updateHandler)
+        (mReceiver as MyBroadcastReceiver).registerHandler(updateHandler)
     }
 
     override fun onStop() {
@@ -229,13 +234,13 @@ class MainActivity : Activity(), View.OnClickListener {
     override fun onClick(v: View?) {
         if (v == mStartButton) {
             Log.d("Button", "Start")
-            val intent: Intent = Intent(this, SesameBeaconService::class.java)
+            val intent: Intent = Intent(this, MyBeaconService::class.java)
             intent.putExtra(KEY, "")
             startService(intent)
             animationStart()
         } else if (v == mStopButton) {
             Log.d("Button", "Stop")
-            val intent: Intent = Intent(this, SesameBeaconService::class.java)
+            val intent: Intent = Intent(this, MyBeaconService::class.java)
             intent.putExtra(KEY, "")
             stopService(intent)
             animationEnd()
@@ -246,11 +251,11 @@ class MainActivity : Activity(), View.OnClickListener {
         } else if (v == mLockButton) {
             Log.d("Button", "Lock")
             if (mMessage != null) {
-                val intent: Intent = Intent(this@MainActivity, SesameBeaconService::class.java)
+                val intent: Intent = Intent(this@MainActivity, MyBeaconService::class.java)
                 if (mMessage == "locked") {
-                    intent.putExtra(KEY, "UnLock")
+                    intent.putExtra(KEY, "unlocking")
                 } else if (mMessage == "unlocked") {
-                    intent.putExtra(KEY, "Lock")
+                    intent.putExtra(KEY, "locking")
                 }
                 startService(intent)
             }

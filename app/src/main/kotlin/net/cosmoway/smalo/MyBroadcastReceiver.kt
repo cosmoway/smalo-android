@@ -8,7 +8,7 @@ import android.os.Handler
 import android.os.Message
 
 /* Receiver内*/
-class SesameBroadcastReceiver : BroadcastReceiver() {
+class MyBroadcastReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
 

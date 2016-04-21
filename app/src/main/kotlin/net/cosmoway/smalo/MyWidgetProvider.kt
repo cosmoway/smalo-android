@@ -2,16 +2,13 @@ package net.cosmoway.smalo
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
-import android.content.ComponentName
 import android.content.Context
 import android.content.IntentFilter
 import android.os.Handler
 import android.os.Message
-import android.widget.ArrayAdapter
-import android.widget.ListView
 import android.widget.RemoteViews
 
-class SesameWidgetProvider : AppWidgetProvider() {
+class MyWidgetProvider : AppWidgetProvider() {
 
     private var remoteViews: RemoteViews? = null
     private var mReceiver: WidgetIntentReceiver? = null

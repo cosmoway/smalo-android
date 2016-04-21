@@ -29,7 +29,7 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
 // BeaconServiceクラス
-class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
+class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
         MonitorNotifier {
 
     // BGで監視するiBeacon領域
@@ -107,21 +107,16 @@ class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeN
 
             override fun onPostExecute(result: String?) {
                 if (result != null) {
-                    if (result == "locked" || result == "unlocked" || result == "unknown") {
+                    if (result == "locked" || result == "unlocked" || result == "unknown" || result == "200 OK") {
                         sendBroadCastToMainActivity(result)
                         makeNotification(result)
-                        if (result == "locked" || result == "unlocked") {
+                        if (result == "200 OK") {
+                            getRequest("http:/$mHost:10080/api/locks/status/$mHashValue")
                             val uri: Uri = RingtoneManager
                                     .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
                             val ringtone: Ringtone = RingtoneManager
                                     .getRingtone(applicationContext, uri)
                             ringtone.play()
-                            try {
-                                // レンジング停止
-                                mBeaconManager?.stopRangingBeaconsInRegion(mRegion)
-                            } catch (e: RemoteException) {
-                                e.printStackTrace()
-                            }
                         }
                     } else {
                         //sendBroadCastToMainActivity(result)
@@ -138,8 +133,8 @@ class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeN
         builder.setSmallIcon(R.mipmap.ic_launcher)
 
         // ノーティフィケションを生成した時のインテントを作成する
-        val notificationIntent = Intent(this@SesameBeaconService, Notification::class.java)
-        val contentIntent = PendingIntent.getActivity(this@SesameBeaconService, 0,
+        val notificationIntent = Intent(this@MyBeaconService, Notification::class.java)
+        val contentIntent = PendingIntent.getActivity(this@MyBeaconService, 0,
                 notificationIntent, 0)
 
         builder.setContentTitle(title) // 1行目
@@ -268,7 +263,8 @@ class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeN
         if (mId == null) {
             Log.d("id", "null")
             // 端末固有識別番号取得
-            mId = UUID.randomUUID().toString()
+            //mId = UUID.randomUUID().toString()
+            mId = "2df60388-e96e-4945-93d0-a4836ee75a3c"
             // 端末固有識別番号記憶
             sp.edit().putString("SaveString", mId).apply()
         }
@@ -276,7 +272,7 @@ class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeN
         Log.d("id", mId)
 
         // Beacon名の作成
-        val beaconId = this@SesameBeaconService.packageName
+        val beaconId = this@MyBeaconService.packageName
         // major, minorの指定はしない
         mRegion = Region(beaconId, identifier, null, null)
         //mRegion = Region(beaconId, null, null, null)
@@ -296,21 +292,30 @@ class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeN
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG_BEACON, "startCommand")
         if (intent != null) {
-            val key: String? = intent.extras?.getString(MainActivity.KEY);
+            var key: String? = intent.extras?.getString(MainActivity.KEY);
+            Log.d(TAG_BEACON, key)
             if (key != null && key != "") {
                 getRequest("http:/$mHost:10080/api/locks/$key/$mHashValue")
             }
         }
-        mIsDiscoveryStarted = false
-        startDiscovery()
+        if (mHost == null) {
+            mIsDiscoveryStarted = false
+            startDiscovery()
+        }
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG_BEACON, "destroy")
+        try {
+            // レンジング停止
+            mBeaconManager?.stopRangingBeaconsInRegion(mRegion)
+            mBeaconManager?.stopMonitoringBeaconsInRegion(mRegion)
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
         mWakeLock?.release()
     }
 

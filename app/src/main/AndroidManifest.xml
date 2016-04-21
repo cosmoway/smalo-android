@@ -37,11 +37,11 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".SesameBeaconService"
+            android:name=".MyBeaconService"
             android:enabled="true" />
 
         <receiver
-            android:name=".SesameBootReceiver"
+            android:name=".MyBootReceiver"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
             android:process=":remote">
             <intent-filter>
@@ -49,14 +49,14 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".SesameWidgetProvider">
+        <receiver android:name=".MyWidgetProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/sesame_widget_provider" />
+                android:resource="@xml/widget_provider" />
         </receiver>
         <receiver
             android:name=".WidgetIntentReceiver"
@@ -67,7 +67,7 @@
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/sesame_widget_provider" />
+                android:resource="@xml/widget_provider" />
         </receiver>
     </application>
 
