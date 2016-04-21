@@ -27,6 +27,7 @@ import org.altbeacon.beacon.startup.RegionBootstrap
 import java.io.IOException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.util.*
 
 // BeaconServiceクラス
 class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
