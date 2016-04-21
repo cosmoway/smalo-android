@@ -44,10 +44,10 @@ class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeN
 
     private var mState: String? = null
     // Nsd Manager
-    private var nsdManager: NsdManager? = null
-    private var discoveryStarted: Boolean = false
+    private var mNsdManager: NsdManager? = null
+    private var mIsDiscoveryStarted: Boolean = false
     // Flag of Unlock
-    private var isUnlocked: Boolean = false
+    private var mIsUnlocked: Boolean = false
     // Wakelock
     private var mWakeLock: PowerManager.WakeLock? = null
 
@@ -170,19 +170,19 @@ class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeN
     }
 
     fun ensureSystemServices() {
-        nsdManager = getSystemService(Context.NSD_SERVICE) as NsdManager
+        mNsdManager = getSystemService(Context.NSD_SERVICE) as NsdManager
         /*if (nsdManager == null) {
             return
         }*/
     }
 
     private fun startDiscovery() {
-        nsdManager?.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, MyDiscoveryListener())
+        mNsdManager?.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, MyDiscoveryListener())
     }
 
     private fun stopDiscovery() {
-        if (discoveryStarted)
-            nsdManager?.stopServiceDiscovery(MyDiscoveryListener())
+        if (mIsDiscoveryStarted)
+            mNsdManager?.stopServiceDiscovery(MyDiscoveryListener())
     }
 
     private inner class MyDiscoveryListener : NsdManager.DiscoveryListener {
@@ -190,22 +190,22 @@ class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeN
             Log.i(TAG_NSD, String.format("Service found serviceInfo=%s", serviceInfo))
             if (serviceInfo.serviceType.equals(SERVICE_TYPE) &&
                     serviceInfo.serviceName == MY_SERVICE_NAME) {
-                nsdManager?.resolveService(serviceInfo, MyResolveListener())
+                mNsdManager?.resolveService(serviceInfo, MyResolveListener())
             }
         }
 
         override fun onDiscoveryStarted(serviceType: String) {
-            discoveryStarted = true
+            mIsDiscoveryStarted = true
             Log.i(TAG_NSD, String.format("Discovery started serviceType=%s", serviceType))
         }
 
         override fun onDiscoveryStopped(serviceType: String) {
-            discoveryStarted = false
+            mIsDiscoveryStarted = false
             Log.i(TAG_NSD, String.format("Discovery stopped serviceType=%s", serviceType))
         }
 
         override fun onServiceLost(serviceInfo: NsdServiceInfo) {
-            discoveryStarted = false
+            mIsDiscoveryStarted = false
             Log.i(TAG_NSD, String.format("Service lost serviceInfo=%s", serviceInfo))
         }
 
@@ -256,7 +256,7 @@ class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeN
         Log.d(TAG_BEACON, "created")
         //BTMのインスタンス化
         mBeaconManager = BeaconManager.getInstanceForApplication(this)
-        isUnlocked = false
+        mIsUnlocked = false
 
         //Parserの設定
         val IBEACON_FORMAT: String = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"
@@ -303,7 +303,7 @@ class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeN
                 getRequest("http:/$mHost:10080/api/locks/$key/$mHashValue")
             }
         }
-        discoveryStarted = false
+        mIsDiscoveryStarted = false
         startDiscovery()
         return START_STICKY
     }
@@ -338,7 +338,7 @@ class SesameBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeN
         sendBroadCastToWidget("$MY_APP_NAPE\n領域に入りました。")
 
         // レンジング開始
-        if (isUnlocked == false) {
+        if (mIsUnlocked == false) {
             try {
                 mBeaconManager?.startRangingBeaconsInRegion(region)
             } catch (e: RemoteException) {
