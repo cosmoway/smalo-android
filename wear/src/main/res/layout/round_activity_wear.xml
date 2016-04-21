@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.susaki.dataapisample.WearActivity"
+    tools:context="net.cosmoway.smalo.WearActivity"
     tools:deviceIds="wear_round">
 
     <TextView
@@ -13,10 +13,11 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:text="@string/hello_round" />
+
     <Button
         android:id="@+id/wearButton"
         android:layout_width="100dp"
         android:layout_height="50dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="30dp" />
 </RelativeLayout>

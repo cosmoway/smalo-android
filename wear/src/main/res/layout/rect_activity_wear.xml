@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.susaki.dataapisample.WearActivity"
+    tools:context="net.cosmoway.smalo.WearActivity"
     tools:deviceIds="wear_square">
 
     <TextView
