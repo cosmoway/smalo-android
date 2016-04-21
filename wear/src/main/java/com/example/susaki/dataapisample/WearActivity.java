@@ -2,54 +2,41 @@ package com.example.susaki.dataapisample;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.wearable.view.WatchViewStub;
-import android.support.wearable.view.WearableListView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.LinearLayout;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.DataEvent;
-import com.google.android.gms.wearable.DataEventBuffer;
-import com.google.android.gms.wearable.DataItem;
-import com.google.android.gms.wearable.DataMap;
-import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
-import com.google.android.gms.wearable.PutDataMapRequest;
-import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 public class WearActivity extends Activity implements MessageApi.MessageListener ,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
     private String TAG = "ウェア";
-    private TextView textView;
 
     private GoogleApiClient googleApiClient = null;
     private Button button;
+    private LinearLayout linearLayout;
     private int message;
     private final int wakeState = 0 , getState = 1 , stateUpdate = 2;
     final int unknown = 10 , close = 11 ,open = 12;
     private int doorState = unknown;
-
-    String shareText = "OK";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.round_activity_wear);
 
-        textView = (TextView)findViewById(R.id.text);
-
         button = (Button) findViewById(R.id.wearButton);
         button.setOnClickListener(this);
+
+        linearLayout = (LinearLayout)findViewById(R.id.LL);
 
         googleApiClient = new GoogleApiClient
                 .Builder(this)
@@ -106,6 +93,11 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
             }else if(doorState == close || doorState == open){
                 Log.d(TAG, "開閉要求");
                 sendDataByMessageApi(String.valueOf(stateUpdate));
+                if(doorState == open) {
+                    linearLayout.setBackgroundResource(R.drawable.shape_yellow);
+                }else if(doorState == close){
+                    linearLayout.setBackgroundResource(R.drawable.shape_blue);
+                }
             }
         }
     }
@@ -137,9 +129,16 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
                 @Override
                 public void run(){
                     message = Integer.parseInt(new String(messageEvents.getData()));
-                    textView.setText(""+message);
                     doorState = message;
                     Log.d(""+message,"動いた");
+                    if(message == close) {
+                        button.setBackgroundResource(R.drawable.smalo_close_button);
+                    }else if(message == open) {
+                        button.setBackgroundResource(R.drawable.smalo_open_button);
+                    }
+
+                    //ボタンの後ろの丸を消す
+                    linearLayout.setBackgroundResource(R.drawable.shape_clear);
                 }
             });
         }
