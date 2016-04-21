@@ -2,7 +2,6 @@ package net.cosmoway.smalo
 
 import android.app.Notification
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -12,13 +11,18 @@ import android.net.Uri
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.AsyncTask
-import android.os.IBinder
+import android.os.Bundle
 import android.os.PowerManager
 import android.os.RemoteException
 import android.preference.PreferenceManager
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v7.app.NotificationCompat
 import android.util.Log
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.wearable.MessageEvent
+import com.google.android.gms.wearable.Wearable
+import com.google.android.gms.wearable.WearableListenerService
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.altbeacon.beacon.*
@@ -30,8 +34,8 @@ import java.security.NoSuchAlgorithmException
 import java.util.*
 
 // BeaconServiceクラス
-class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
-        MonitorNotifier {
+class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
+        MonitorNotifier, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     // BGで監視するiBeacon領域
     private var mRegionBootstrap: RegionBootstrap? = null
@@ -53,6 +57,23 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     private var mWakeLock: PowerManager.WakeLock? = null
 
     private var mHashValue: String? = null
+
+    private var mApiClient: GoogleApiClient? = null
+
+    private var mIsRangingBeacon: Boolean? = false
+
+
+    //internal var message: Int = 0
+    private var mReceivedMessageFromWear: String? = null
+    internal val wakeState: Int = 0
+    internal val getState: Int = 1
+    internal val stateUpdate: Int = 2
+    internal val unknown: Int = 10
+    internal val close: Int = 11
+    internal val open: Int = 12
+    //TODO 動作確認のために初期設定close 実装時はunknownにする
+    //internal var doorState: Int = 0
+    private var doorState: String? = "unknown"
 
 
     companion object {
@@ -108,16 +129,20 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
 
             override fun onPostExecute(result: String?) {
                 if (result != null) {
-                    if (result == "locked" || result == "unlocked" || result == "unknown" || result == "200 OK") {
+                    if (result.equals("locked") || result.equals("unlocked") || result.equals("unknown") || result.equals("200 OK")) {
                         sendBroadCastToMainActivity(result)
                         makeNotification(result)
-                        if (result == "200 OK") {
-                            getRequest("http:/$mHost:10080/api/locks/status/$mHashValue")
+                        if (result.equals("200 OK")) {
                             val uri: Uri = RingtoneManager
                                     .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
                             val ringtone: Ringtone = RingtoneManager
                                     .getRingtone(applicationContext, uri)
                             ringtone.play()
+                            getRequest("http:/$mHost:10080/api/locks/status/$mHashValue")
+                        } else {
+                            mState = result
+                            //TODO: 処理結果をwearに返す
+                            sendDataByMessageApi(result)
                         }
                     } else {
                         //sendBroadCastToMainActivity(result)
@@ -139,21 +164,21 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
                 notificationIntent, 0)
 
         builder.setContentTitle(title) // 1行目
-        if (title == "locked") {
+        if (title.equals("locked")) {
             builder.setContentText("施錠されております。")
-        } else if (title == "unlocked") {
+        } else if (title.equals("unlocked")) {
             builder.setContentText("解錠されております。")
-        } else if (title == "unknown") {
+        } else if (title.equals("unknown")) {
             builder.setContentText("鍵の状態が判りませんでした。")
-        } else if (title == "Connection Error") {
+        } else if (title.equals("Connection Error")) {
             builder.setContentText("通信処理が正常に終了されませんでした。\n通信環境を御確認下さい。")
         } else if (title.indexOf("400") != -1) {
             builder.setContentText("予期せぬエラーが発生致しました。\n開発者に御問合せ下さい。")
         } else if (title.indexOf("403") != -1) {
             builder.setContentText("認証に失敗致しました。\nシステム管理者に登録を御確認下さい。")
-        } else if (title == "Enter Region") {
+        } else if (title.equals("Enter Region")) {
             builder.setContentText("領域に入りました。")
-        } else if (title == "Exit Region") {
+        } else if (title.equals("Exit Region")) {
             builder.setContentText("領域から出ました。")
         }
         builder.setContentIntent(contentIntent)
@@ -250,7 +275,19 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG_BEACON, "created")
-        //BTMのインスタンス化
+
+        //doorState = unknown
+
+        // APIクライアント初期化
+        mApiClient = GoogleApiClient
+                .Builder(this)
+                .addApi(Wearable.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build()
+        mApiClient?.connect()
+
+        // BTMのインスタンス化
         mBeaconManager = BeaconManager.getInstanceForApplication(this)
         mIsUnlocked = false
 
@@ -311,16 +348,13 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
         Log.d(TAG_BEACON, "destroy")
         try {
             // レンジング停止
+            mIsRangingBeacon = false
             mBeaconManager?.stopRangingBeaconsInRegion(mRegion)
             mBeaconManager?.stopMonitoringBeaconsInRegion(mRegion)
         } catch (e: RemoteException) {
             e.printStackTrace()
         }
         mWakeLock?.release()
-    }
-
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
     }
 
     //Beaconサービスの接続と開始
@@ -357,7 +391,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     // 領域退出
     override fun didExitRegion(region: Region) {
         Log.d(TAG_BEACON, "Exit Region")
-
+        mIsRangingBeacon = false
         // レンジング停止
         try {
             mBeaconManager?.stopRangingBeaconsInRegion(region)
@@ -369,6 +403,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     }
 
     override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
+        mIsRangingBeacon = true
         beacons?.forEach { beacon ->
 
             // ログの出力
@@ -414,5 +449,78 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     // 領域に対する状態が変化
     override fun didDetermineStateForRegion(i: Int, region: Region) {
         Log.d(TAG_BEACON, "Determine State: " + i)
+    }
+
+    //データを更新
+    private fun sendDataByMessageApi(message: String) {
+
+        Log.d("サービス", "動いた")
+        Thread(Runnable {
+            Log.d("サービス", "ラン")
+            val nodes = Wearable.NodeApi.getConnectedNodes(mApiClient).await()
+            for (node in nodes.nodes) {
+                Log.d("サービス", "フォー")
+                Wearable.MessageApi
+                        .sendMessage(mApiClient, node.id, "/data_comm", message.toByteArray())
+            }
+        }).start()
+        //        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/data_handheld");
+        //        putDataMapReq.getDataMap().putInt("key_handheld", text);
+        //        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+        //        Wearable.DataApi.putDataItem(googleApiClient, putDataReq);
+        //        Log.d("スマホサービス", "データ送信");
+    }
+
+    //ウェアからのメッセージを受け取った時に走る。
+    override fun onMessageReceived(messageEvents: MessageEvent?) {
+        if (messageEvents?.path.equals("/data_comm2")) {
+            mReceivedMessageFromWear = String(messageEvents!!.data)
+            Log.d(TAG_BEACON, "受け取ったメッセージ: $mReceivedMessageFromWear")
+
+            //TODO: 取得した内容に応じ処理
+
+            // 問い合わせ要求時
+            if (mReceivedMessageFromWear.equals("getState")) {
+                //TODO: 鍵の情報の取得
+                Log.d(TAG_BEACON, "getState")
+                if (mState != null) {
+                    //sendDataByMessageApi(doorState.toString())
+                    sendDataByMessageApi(mState as String)
+                } else {
+                    sendDataByMessageApi("unknown")
+                }
+                // 解錠施錠要求時
+            } else if (mReceivedMessageFromWear.equals("stateUpdate")) {
+                //TODO: 今のステートに応じて処理する。Wearに結果返すのは解錠施錠時。
+                if (mState != "unknown") {
+                    //TODO: 解錠施錠要求の送信
+                    if (mState.equals("locked")) {
+                        getRequest("http:/$mHost:10080/api/locks/unlocking/$mHashValue")
+                        Log.d("鍵", "あける");
+                        //doorState = open;
+                    } else if (mState.equals("unlocked")) {
+                        getRequest("http:/$mHost:10080/api/locks/locking/$mHashValue")
+                        Log.d("鍵", "しめる");
+                        //doorState = close;
+                    }
+                    //sendDataByMessageApi(doorState.toString())
+                }
+            } else {
+                Log.d("要求", "通ってない")
+            }
+        }
+    }
+
+
+    override fun onConnectionSuspended(p0: Int) {
+        throw UnsupportedOperationException()
+    }
+
+    override fun onConnected(p0: Bundle?) {
+        throw UnsupportedOperationException()
+    }
+
+    override fun onConnectionFailed(p0: ConnectionResult) {
+        throw UnsupportedOperationException()
     }
 }
