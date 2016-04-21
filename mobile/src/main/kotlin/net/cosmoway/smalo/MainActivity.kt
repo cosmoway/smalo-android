@@ -137,15 +137,11 @@ class MainActivity : Activity(), View.OnClickListener {
         mOval3 = findViewById(R.id.oval3) as ImageView
         mOval4 = findViewById(R.id.oval4) as ImageView
         mOval5 = findViewById(R.id.oval5) as ImageView
-        mStartButton = findViewById(R.id.btn_start) as Button
-        mStopButton = findViewById(R.id.btn_stop) as Button
         mLockButton = findViewById(R.id.btn_lock) as ImageButton
         mLockButton?.isEnabled = false
     }
 
     private fun setOnClickListeners() {
-        mStartButton?.setOnClickListener(this)
-        mStopButton?.setOnClickListener(this)
         mLockButton?.setOnClickListener(this)
     }
 
@@ -217,17 +213,11 @@ class MainActivity : Activity(), View.OnClickListener {
     override fun onResume() {
         super.onResume()
         window.addFlags(FLAG_KEYGUARD)
-        //permission check
-        if (ActivityCompat.checkSelfPermission(this@MainActivity,
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this@MainActivity,
-                        Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Bluetoothの利用が許可されておりません。", Toast.LENGTH_LONG).show()
-            return
-        }
 
-        //startService(Intent(this@MainActivity, SesameBeaconService::class.java))
-        //stopService(Intent(this, SesameBeaconService::class.java))
+        val intent: Intent = Intent(this, MyBeaconService::class.java)
+        intent.putExtra(KEY, "")
+        startService(intent)
+        animationStart()
     }
 
     override fun onDestroy() {
@@ -248,23 +238,7 @@ class MainActivity : Activity(), View.OnClickListener {
     }
 
     override fun onClick(v: View?) {
-        if (v == mStartButton) {
-            Log.d("Button", "Start")
-            val intent: Intent = Intent(this, MyBeaconService::class.java)
-            intent.putExtra(KEY, "")
-            startService(intent)
-            animationStart()
-        } else if (v == mStopButton) {
-            Log.d("Button", "Stop")
-            val intent: Intent = Intent(this, MyBeaconService::class.java)
-            intent.putExtra(KEY, "")
-            stopService(intent)
-            animationEnd()
-            mLockButton?.setImageResource(R.drawable.smalo_search_icon)
-            mLockButton?.isEnabled = false
-            mOval4?.visibility = View.GONE
-            mOval5?.visibility = View.GONE
-        } else if (v == mLockButton) {
+        if (v == mLockButton) {
             Log.d("Button", "Lock")
             if (mMessage != null) {
                 val intent: Intent = Intent(this@MainActivity, MyBeaconService::class.java)
