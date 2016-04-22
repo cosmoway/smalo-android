@@ -13,6 +13,7 @@ import com.google.android.gms.wearable.WearableListenerService;
 
 
 /**
+ *
  * Created by susaki on 16/04/18.
  */
 public class HandheldService extends WearableListenerService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {

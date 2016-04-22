@@ -60,7 +60,7 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     protected void onResume() {
         super.onResume();
         googleApiClient.connect();
-        sendDataByMessageApi(String.valueOf(wakeState));
+        sendDataByMessageApi("wakeState");
         Log.d(TAG, "onResume");
     }
 
