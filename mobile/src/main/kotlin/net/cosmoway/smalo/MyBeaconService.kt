@@ -8,12 +8,12 @@ import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 
-
 /**
-
+ *
  * Created by susaki on 16/04/18.
  */
-class HandheldService : WearableListenerService(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+class MyBeaconService : WearableListenerService(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private var googleApiClient: GoogleApiClient? = null
 

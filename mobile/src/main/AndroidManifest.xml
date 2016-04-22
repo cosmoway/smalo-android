@@ -9,12 +9,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <service android:name=".HandheldService">
+        <service android:name=".MyBeaconService">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.BIND_LISTENER" />
             </intent-filter>
         </service>
-        <activity android:name=".HandheldActivity">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
