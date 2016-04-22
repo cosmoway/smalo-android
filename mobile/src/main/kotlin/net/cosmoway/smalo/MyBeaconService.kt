@@ -27,7 +27,6 @@ import org.altbeacon.beacon.startup.RegionBootstrap
 import java.io.IOException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.*
 
 // BeaconServiceクラス
 class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
@@ -109,7 +108,6 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
             override fun onPostExecute(result: String?) {
                 if (result != null) {
                     if (result == "locked" || result == "unlocked" || result == "unknown" || result == "200 OK") {
-                        sendBroadCastToMainActivity(result)
                         makeNotification(result)
                         if (result == "200 OK") {
                             getRequest("http:/$mHost:10080/api/locks/status/$mHashValue")
@@ -118,9 +116,10 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
                             val ringtone: Ringtone = RingtoneManager
                                     .getRingtone(applicationContext, uri)
                             ringtone.play()
+                        } else {
+                            sendBroadCastToMainActivity(result)
                         }
                     } else {
-                        //sendBroadCastToMainActivity(result)
                         makeNotification(result)
                     }
                 }
@@ -295,8 +294,8 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent != null) {
             var key: String? = intent.extras?.getString(MainActivity.KEY);
-            Log.d(TAG_BEACON, key)
             if (key != null && key != "") {
+                Log.d(TAG_BEACON, key)
                 getRequest("http:/$mHost:10080/api/locks/$key/$mHashValue")
             }
         }
