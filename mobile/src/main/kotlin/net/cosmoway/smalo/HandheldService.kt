@@ -1,4 +1,4 @@
-package com.example.susaki.dataapisample
+package net.cosmoway.smalo
 
 import android.os.Bundle
 import android.util.Log
