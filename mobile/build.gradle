@@ -6,7 +6,7 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "com.example.susaki.dataapisample"
+        applicationId "net.cosmoway.smalo"
         minSdkVersion 18
         targetSdkVersion 23
         versionCode 1
