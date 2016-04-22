@@ -31,6 +31,7 @@ import org.altbeacon.beacon.startup.RegionBootstrap
 import java.io.IOException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.util.*
 
 // BeaconServiceクラス
 class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
@@ -129,7 +130,7 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
             override fun onPostExecute(result: String?) {
                 if (result != null) {
                     if (result.equals("locked") || result.equals("unlocked") || result.equals("unknown") || result.equals("200 OK")) {
-                        sendBroadCastToMainActivity(result)
+
                         makeNotification(result)
                         if (result.equals("200 OK")) {
                             val uri: Uri = RingtoneManager
@@ -142,9 +143,9 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
                             mState = result
                             //TODO: 処理結果をwearに返す
                             sendDataByMessageApi(result)
+                            sendBroadCastToMainActivity(result)
                         }
                     } else {
-                        //sendBroadCastToMainActivity(result)
                         makeNotification(result)
                     }
                 }
@@ -291,8 +292,8 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
         if (mId == null) {
             Log.d("id", "null")
             // 端末固有識別番号取得
-            //mId = UUID.randomUUID().toString()
-            mId = "2df60388-e96e-4945-93d0-a4836ee75a3c"
+            mId = UUID.randomUUID().toString()
+            //mId = "2df60388-e96e-4945-93d0-a4836ee75a3c"
             // 端末固有識別番号記憶
             sp.edit().putString("SaveString", mId).apply()
         }
@@ -331,8 +332,8 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent != null) {
             var key: String? = intent.extras?.getString(MainActivity.KEY);
-            Log.d(TAG_BEACON, key)
             if (key != null && key != "") {
+                Log.d(TAG_BEACON, key)
                 getRequest("http:/$mHost:10080/api/locks/$key/$mHashValue")
             }
         }
