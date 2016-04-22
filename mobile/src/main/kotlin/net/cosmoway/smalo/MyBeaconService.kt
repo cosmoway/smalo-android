@@ -42,7 +42,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
         val TAG_NSD = "NSD"
         val SERVICE_TYPE = "_xdk-app-daemon._tcp."
         val MY_SERVICE_NAME = "smalo"
-        //val MY_SERVICE_NAME = "smalo-dev"
+        //val MY_SERVICE_NAME = "dev-smalo"
         val MY_SERVICE_UUID = "51a4a738-62b8-4b26-a929-3bbac2a5ce7c"
         //val MY_SERVICE_UUID = "dddddddddddddddddddddddddddddddd"
         val MY_APP_NAPE = "ＳＭＡＬＯ"
