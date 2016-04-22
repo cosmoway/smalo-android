@@ -121,7 +121,7 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
                 /*textView?.text = "" + message
                 doorState = message
                 Log.d("" + message, "動いた")*/
-                mText?.text = "" + mState
+                mText?.text = mState
                 Log.d(TAG, "動いた, $mState")
             }
         }

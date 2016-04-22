@@ -12,6 +12,16 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    signingConfigs{
+        release {
+            keyAlias 'cosmoway'
+            keyPassword 'Factory44'
+            storeFile file('/Users/ando/Downloads/cosmoway.release.keystore')
+            storePassword 'Factory44'
+        }
+    }
+
     lintOptions {
         abortOnError false
     }
