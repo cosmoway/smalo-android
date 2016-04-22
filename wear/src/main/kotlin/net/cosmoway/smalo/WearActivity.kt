@@ -2,10 +2,11 @@ package net.cosmoway.smalo
 
 import android.app.Activity
 import android.os.Bundle
+import android.support.wearable.view.WatchViewStub
 import android.util.Log
 import android.view.View
 import android.widget.Button
-import android.widget.TextView
+import android.widget.LinearLayout
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.MessageApi
@@ -14,49 +15,41 @@ import com.google.android.gms.wearable.Wearable
 
 class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
-    private val TAG = "Wear"
-    private var mText: TextView? = null
+    private val TAG = "ウェア"
 
     private var mApiClient: GoogleApiClient? = null
     private var mButton: Button? = null
-    //private var message: Int = 0
-    private var message: String? = "getState"
-    private val getState: Int = 0
-    private val stateUpdate: Int = 2
-    internal val unknown: Int = 10
-    internal val close: Int = 11
-    internal val open: Int = 12
-    //private var doorState = unknown
-    private var mState: String? = "unknown"
-
-    internal var shareText = "OK"
+    private var mLinearLayout: LinearLayout? = null
+    private var mMessage: String? = null
+    private val wakeState = 0
+    private val getState = 1
+    private val stateUpdate = 2
+    internal val unknown = 10
+    internal val close = 11
+    internal val open = 12
+    private var mState = "unknown"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        this.setContentView(R.layout.round_activity_wear)
+        setContentView(R.layout.activity_wear)
 
-        mText = findViewById(R.id.text) as TextView
+        val stub = findViewById(R.id.watch_view_stub) as WatchViewStub
+        stub.setOnLayoutInflatedListener { watchViewStub ->
+            mLinearLayout = watchViewStub.findViewById(R.id.ll) as LinearLayout
+            mButton = watchViewStub.findViewById(R.id.btn_wear) as Button
+            mButton!!.setOnClickListener(this@WearActivity)
+        }
 
-        mButton = findViewById(R.id.wearButton) as Button
-        mButton?.setOnClickListener(this)
+        mApiClient = GoogleApiClient.Builder(this).addApi(Wearable.API).addConnectionCallbacks(this).addOnConnectionFailedListener(this).build()
 
-        mApiClient = GoogleApiClient
-                .Builder(this)
-                .addApi(Wearable.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build()
-
-        // データ更新をするメソッドを呼ぶ。
-        //sendDataByMessageApi(getState.toString())
-        sendDataByMessageApi("getState")
+        //データ更新をするメソッドを呼ぶ
+        sendDataByMessageApi("wakeState")
     }
 
     override fun onResume() {
         super.onResume()
-        mApiClient?.connect()
-        //sendDataByMessageApi(getState.toString())
-        sendDataByMessageApi("getState")
+        mApiClient!!.connect()
+        sendDataByMessageApi("wakeState")
         Log.d(TAG, "onResume")
     }
 
@@ -84,11 +77,16 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
 
     override fun onClick(viewHolder: View) {
         if (viewHolder == mButton) {
-            if (mState.equals("unknown")) {
-                Log.d(TAG, "不活性")
-            } else if (mState.equals("unlocked") || mState.equals("locked")) {
+            if (mState == "unknown") {
+                Log.d(TAG, "サーチ中")
+            } else if (mState == "close" || mState == "open") {
                 Log.d(TAG, "開閉要求")
-                sendDataByMessageApi("stateUpdate".toString())
+                sendDataByMessageApi("stateUpdate")
+                if (mState == "open") {
+                    mLinearLayout!!.setBackgroundResource(R.drawable.shape_yellow)
+                } else if (mState == "close") {
+                    mLinearLayout!!.setBackgroundResource(R.drawable.shape_blue)
+                }
             }
         }
     }
@@ -98,9 +96,7 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
         Thread(Runnable {
             val nodes = Wearable.NodeApi.getConnectedNodes(mApiClient).await()
             for (node in nodes.nodes) {
-                // メッセージをモバイルに渡す。
-                Wearable.MessageApi
-                        .sendMessage(mApiClient, node.id, "/data_comm2", message.toByteArray())
+                Wearable.MessageApi.sendMessage(mApiClient, node.id, "/data_comm2", message.toByteArray())
             }
         }).start()
         //        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/data_wear");
@@ -110,19 +106,22 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
         //Log.d(TAG, "データ送信");
     }
 
-    // モバイルから値を受け取った時走る。
     override fun onMessageReceived(messageEvents: MessageEvent) {
         Log.d(TAG, "レシーブ")
-        if (messageEvents.path.equals("/data_comm")) {
+        if (messageEvents.path == "/data_comm") {
             Log.d(TAG, "パスOK")
             runOnUiThread {
-                //message = Integer.parseInt(String(messageEvents.data))
-                mState = String(messageEvents.data)
-                /*textView?.text = "" + message
-                doorState = message
-                Log.d("" + message, "動いた")*/
-                mText?.text = mState
-                Log.d(TAG, "動いた, $mState")
+                mMessage = String(messageEvents.data)
+                mState = mMessage as String
+                Log.d(mMessage, "動いた")
+                if (mMessage == "close") {
+                    mButton!!.setBackgroundResource(R.drawable.smalo_close_button)
+                } else if (mMessage == "open") {
+                    mButton!!.setBackgroundResource(R.drawable.smalo_open_button)
+                }
+
+                //ボタンの後ろの丸を消す
+                mLinearLayout!!.setBackgroundResource(R.drawable.shape_clear)
             }
         }
     }
