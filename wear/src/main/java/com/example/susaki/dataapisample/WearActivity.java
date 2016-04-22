@@ -2,6 +2,7 @@ package com.example.susaki.dataapisample;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -15,8 +16,9 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
-public class WearActivity extends Activity implements MessageApi.MessageListener ,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
+public class WearActivity extends Activity implements MessageApi.MessageListener,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        View.OnClickListener {
 
     private String TAG = "ウェア";
 
@@ -24,19 +26,24 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     private Button button;
     private LinearLayout linearLayout;
     private String message;
-    private final int wakeState = 0 , getState = 1 , stateUpdate = 2;
-    final int unknown = 10 , close = 11 ,open = 12;
+    private final int wakeState = 0, getState = 1, stateUpdate = 2;
+    final int unknown = 10, close = 11, open = 12;
     private String doorState = "unknown";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.setContentView(R.layout.round_activity_wear);
+        setContentView(R.layout.activity_wear);
 
-        button = (Button) findViewById(R.id.wearButton);
-        button.setOnClickListener(this);
-
-        linearLayout = (LinearLayout)findViewById(R.id.LL);
+        final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
+        stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
+            @Override
+            public void onLayoutInflated(WatchViewStub watchViewStub) {
+                linearLayout = (LinearLayout) watchViewStub.findViewById(R.id.ll);
+                button = (Button) watchViewStub.findViewById(R.id.btn_wear);
+                button.setOnClickListener(WearActivity.this);
+            }
+        });
 
         googleApiClient = new GoogleApiClient
                 .Builder(this)
@@ -61,7 +68,7 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     protected void onPause() {
         super.onPause();
         if (googleApiClient != null && googleApiClient.isConnected()) {
-            Wearable.MessageApi.removeListener(googleApiClient,this);
+            Wearable.MessageApi.removeListener(googleApiClient, this);
             googleApiClient.disconnect();
             //Log.d(TAG, "onPause");
         }
@@ -70,7 +77,7 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     @Override
     public void onConnected(Bundle bundle) {
         Log.d(TAG, "onConnected");
-        Wearable.MessageApi.addListener(googleApiClient,this);
+        Wearable.MessageApi.addListener(googleApiClient, this);
     }
 
     @Override
@@ -86,14 +93,14 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
     @Override
     public void onClick(View viewHolder) {
         if (viewHolder.equals(button)) {
-            if(doorState.equals("unknown")) {
+            if (doorState.equals("unknown")) {
                 Log.d(TAG, "サーチ中");
-            }else if(doorState.equals("close") || doorState.equals("open")){
+            } else if (doorState.equals("close") || doorState.equals("open")) {
                 Log.d(TAG, "開閉要求");
                 sendDataByMessageApi("stateUpdate");
-                if(doorState.equals("open")) {
+                if (doorState.equals("open")) {
                     linearLayout.setBackgroundResource(R.drawable.shape_yellow);
-                }else if(doorState.equals("close")){
+                } else if (doorState.equals("close")) {
                     linearLayout.setBackgroundResource(R.drawable.shape_blue);
                 }
             }
@@ -102,12 +109,12 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
 
     //データを更新
     private void sendDataByMessageApi(final String message) {
-        new Thread(new Runnable(){
+        new Thread(new Runnable() {
             @Override
-            public void run(){
+            public void run() {
                 NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
-                for(Node node : nodes.getNodes()){
-                    Wearable.MessageApi.sendMessage(googleApiClient , node.getId() , "/data_comm2" , message.getBytes());
+                for (Node node : nodes.getNodes()) {
+                    Wearable.MessageApi.sendMessage(googleApiClient, node.getId(), "/data_comm2", message.getBytes());
                 }
             }
         }).start();
@@ -120,18 +127,18 @@ public class WearActivity extends Activity implements MessageApi.MessageListener
 
     @Override
     public void onMessageReceived(final MessageEvent messageEvents) {
-        Log.d(TAG,"レシーブ");
-        if(messageEvents.getPath().equals("/data_comm")){
-            Log.d(TAG,"パスOK");
-            runOnUiThread(new Runnable(){
+        Log.d(TAG, "レシーブ");
+        if (messageEvents.getPath().equals("/data_comm")) {
+            Log.d(TAG, "パスOK");
+            runOnUiThread(new Runnable() {
                 @Override
-                public void run(){
+                public void run() {
                     message = new String(messageEvents.getData());
                     doorState = message;
-                    Log.d(message,"動いた");
-                    if(message.equals("close")) {
+                    Log.d(message, "動いた");
+                    if (message.equals("close")) {
                         button.setBackgroundResource(R.drawable.smalo_close_button);
-                    }else if(message.equals("open")) {
+                    } else if (message.equals("open")) {
                         button.setBackgroundResource(R.drawable.smalo_open_button);
                     }
 

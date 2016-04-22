@@ -7,5 +7,5 @@
     android:layout_height="match_parent"
     app:rectLayout="@layout/rect_activity_wear"
     app:roundLayout="@layout/round_activity_wear"
-    tools:context="net.cosmoway.smalo.WearActivity"
+    tools:context="com.example.susaki.dataapisample.WearActivity"
     tools:deviceIds="wear" />
