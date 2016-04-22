@@ -8,4 +8,4 @@
     app:rectLayout="@layout/rect_activity_wear"
     app:roundLayout="@layout/round_activity_wear"
     tools:context="com.example.susaki.dataapisample.WearActivity"
-    tools:deviceIds="wear"></android.support.wearable.view.WatchViewStub>
+    tools:deviceIds="wear" />
