@@ -17,7 +17,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.PROVIDE_BACKGROUND" />
+    <uses-permission android:name="com.google.android.permission.PROVIDE_BACKGROUND" />
 
     <!--BLE対応機種のみインストール可とするよう設定-->
     <uses-feature
@@ -26,7 +26,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/smalo_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
@@ -42,8 +42,7 @@
 
         <service
             android:name=".MyBeaconService"
-            android:enabled="true" />
-        <service android:name=".HandheldService">
+            android:enabled="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.BIND_LISTENER" />
             </intent-filter>
@@ -84,5 +83,4 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
     </application>
-
 </manifest>

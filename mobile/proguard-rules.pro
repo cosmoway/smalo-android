@@ -15,3 +15,21 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-keepclassmembers class * extends android.app.Activity {
+   public void *(android.view.View);
+}
+
+-dontwarn android.**
+-dontwarn okio.**
+-dontwarn com.squareup.okhttp3.**
+-dontwarn org.altbeacon.**
+
+-keep class com.squareup.okhttp3.** { *; }
+-keep interface com.squareup.okhttp3.* { *; }
+-keep class org.altbeacon.** { *; }
+-keep interface org.altbeacon.* { *; }
+-keepattributes Signature
+-keepattributes Annotation
+
+
