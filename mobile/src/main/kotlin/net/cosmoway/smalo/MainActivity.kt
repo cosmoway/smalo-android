@@ -278,4 +278,8 @@ class MainActivity : Activity(), View.OnClickListener {
             animationStart()
         }
     }
+
+    override fun onPause() {
+        super.onPause()
+    }
 }

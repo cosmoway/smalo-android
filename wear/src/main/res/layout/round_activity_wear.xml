@@ -3,21 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="net.cosmoway.smalo.WearActivity"
+    tools:context=".WearActivity"
     tools:deviceIds="wear_round">
 
-    <TextView
-        android:id="@+id/text"
+
+    <LinearLayout
+        android:id="@+id/ll"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:text="@string/hello_round" />
+        android:layout_centerVertical="true">
 
-    <Button
-        android:id="@+id/wearButton"
-        android:layout_width="100dp"
-        android:layout_height="50dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp" />
+        <Button
+            android:id="@+id/btn_wear"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
+            android:layout_margin="20dp"
+            android:background="@drawable/smalo_search_icon" />
+    </LinearLayout>
 </RelativeLayout>

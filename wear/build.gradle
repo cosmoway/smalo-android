@@ -15,7 +15,7 @@ android {
     }
 
     signingConfigs{
-        release {
+        releaseConfig {
             keyAlias 'cosmoway'
             keyPassword 'Factory44'
             storeFile file('/Users/ando/Downloads/cosmoway.release.keystore')
@@ -26,6 +26,7 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.releaseConfig
         }
     }
     sourceSets {

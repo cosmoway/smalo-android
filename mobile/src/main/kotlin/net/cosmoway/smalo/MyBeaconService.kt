@@ -511,13 +511,16 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
         }
     }
 
+    override fun onConnected(bundle: Bundle?) {
 
-    override fun onConnectionSuspended(p0: Int) {
+        Log.d("onConnected", "実行")
     }
 
-    override fun onConnected(p0: Bundle?) {
+    override fun onConnectionSuspended(i: Int) {
+        Log.d("Suspended", "実行")
     }
 
-    override fun onConnectionFailed(p0: ConnectionResult) {
+    override fun onConnectionFailed(connectionResult: ConnectionResult) {
+        Log.d("Failed", "実行")
     }
 }
