@@ -22,11 +22,13 @@
             android:layout_height="wrap_content"
             android:textColor="@color/white" />
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_wear"
             android:layout_width="130dp"
             android:layout_height="130dp"
             android:layout_margin="20dp"
-            android:background="@drawable/smalo_search_icon" />
+            android:background="@null"
+            android:scaleType="fitCenter"
+            android:src="@drawable/smalo_search_icon" />
     </LinearLayout>
 </RelativeLayout>

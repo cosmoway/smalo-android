@@ -28,9 +28,6 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     private var mState: String? = null
     // Nsd Manager
     private var mNsdManager: NsdManager? = null
-    private var mIsDiscoveryStarted: Boolean = false
-    // Flag of Unlock
-    private var mIsUnlocked: Boolean = false
     // Wakelock
     private var mWakeLock: PowerManager.WakeLock? = null
 
@@ -148,7 +145,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     }
 
     fun ensureSystemServices() {
-        mNsdManager = getSystemService(Context.NSD_SERVICE) as NsdManager
+        mNsdManager = getSystemService(NSD_SERVICE) as NsdManager
         /*if (nsdManager == null) {
             return
         }*/
@@ -159,8 +156,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     }
 
     private fun stopDiscovery() {
-        if (mIsDiscoveryStarted)
-            mNsdManager?.stopServiceDiscovery(MyDiscoveryListener())
+        mNsdManager?.stopServiceDiscovery(MyDiscoveryListener())
     }
 
     private inner class MyDiscoveryListener : NsdManager.DiscoveryListener {
@@ -173,17 +169,14 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
         }
 
         override fun onDiscoveryStarted(serviceType: String) {
-            mIsDiscoveryStarted = true
             Log.i(TAG_NSD, String.format("Discovery started serviceType=%s", serviceType))
         }
 
         override fun onDiscoveryStopped(serviceType: String) {
-            mIsDiscoveryStarted = false
             Log.i(TAG_NSD, String.format("Discovery stopped serviceType=%s", serviceType))
         }
 
         override fun onServiceLost(serviceInfo: NsdServiceInfo) {
-            mIsDiscoveryStarted = false
             Log.i(TAG_NSD, String.format("Service lost serviceInfo=%s", serviceInfo))
         }
 
@@ -210,6 +203,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
         override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
             Log.w(TAG_NSD, String.format("Failed to resolve serviceInfo=%s, errorCode=%d",
                     serviceInfo, errorCode))
+            startDiscovery()
         }
     }
 
@@ -232,10 +226,11 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG_BEACON, "created")
-        //BTMのインスタンス化
-        mBeaconManager = BeaconManager.getInstanceForApplication(this)
-        mIsUnlocked = false
 
+        //doorState = unknown
+
+        // BTMのインスタンス化
+        mBeaconManager = BeaconManager.getInstanceForApplication(this@MyBeaconService)
         //Parserの設定
         val IBEACON_FORMAT: String = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"
         mBeaconManager?.beaconParsers?.add(BeaconParser().setBeaconLayout(IBEACON_FORMAT))
@@ -246,8 +241,8 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
         if (mId == null) {
             Log.d("id", "null")
             // 端末固有識別番号取得
-            mId = UUID.randomUUID().toString()
-            //mId = "2df60388-e96e-4945-93d0-a4836ee75a3c"
+            //mId = UUID.randomUUID().toString()
+            mId = "2df60388-e96e-4945-93d0-a4836ee75a3c"
             // 端末固有識別番号記憶
             sp.edit().putString("SaveString", mId).apply()
         }
@@ -276,13 +271,12 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent != null) {
             var key: String? = intent.extras?.getString(MainActivity.KEY);
-            if (key != null && key != "") {
+            if (key != null && !key.equals("")) {
                 Log.d(TAG_BEACON, key)
                 getRequest("http:/$mHost:10080/api/locks/$key/$mHashValue")
             }
         }
         if (mHost == null) {
-            mIsDiscoveryStarted = false
             startDiscovery()
         }
         return START_STICKY
@@ -304,9 +298,84 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
+    // 領域進入
+    override fun didEnterRegion(region: Region) {
+        Log.d(TAG_BEACON, "Enter Region")
 
-        googleApiClient = GoogleApiClient.Builder(this).addApi(Wearable.API).addConnectionCallbacks(this).addOnConnectionFailedListener(this).build()
-        googleApiClient!!.connect()
+        makeNotification("Enter Region")
+        sendBroadCastToWidget("$MY_APP_NAPE\n領域に入りました。")
+
+        // レンジング開始
+        try {
+            mBeaconManager?.startRangingBeaconsInRegion(region)
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
+        //Beacon情報の取得
+        mBeaconManager?.setRangeNotifier(this)
+    }
+
+    // 領域退出
+    override fun didExitRegion(region: Region) {
+        Log.d(TAG_BEACON, "Exit Region")
+        mIsRangingBeacon = false
+        // レンジング停止
+        try {
+            mBeaconManager?.stopRangingBeaconsInRegion(region)
+            makeNotification("Exit Region")
+            sendBroadCastToWidget("$MY_APP_NAPE\n領域から出ました。")
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
+        mIsRangingBeacon = true
+        beacons?.forEach { beacon ->
+
+            // ログの出力
+            Log.d("Beacon", "UUID:" + beacon.id1 + ", major:" + beacon.id2 + ", minor:" + beacon.id3
+                    + ", Distance:" + beacon.distance + "m"
+                    + ", RSSI:" + beacon.rssi + ", txPower:" + beacon.txPower)
+
+            // 暗号化
+            mHashValue = toEncryptedHashValue("SHA-256", mId + "|"
+                    + beacon.id2 + "|" + beacon.id3)
+
+            // URL
+            val url: String = "http:/$mHost:10080/api/locks/status/$mHashValue"
+            Log.d(TAG_BEACON, url)
+
+            // 距離種別
+            var proximity: String = "proximity"
+
+            if (beacon.distance < 0.0) {
+                proximity = "Unknown"
+
+            } else if (beacon.distance <= 0.5) {
+                proximity = "Immediate"
+
+            } else if (beacon.distance <= 3.0) {
+                proximity = "Near"
+
+            } else if (beacon.distance > 3.0) {
+                proximity = "Far"
+
+            }
+            /*val list: Array<String> = arrayOf(beacon.id1.toString(), beacon.id2.toString(),
+                    beacon.id3.toString(), beacon.rssi.toString(), proximity, mId.toString()
+                    /*,beacon.distance.toString(), beacon.txPower.toString(), url.toString()*/)*/
+            //sendBroadCastToMainActivity(list)
+            if (mHost != null && beacon.distance != -1.0
+                    && beacon.id1.toString() == MY_SERVICE_UUID) {
+                getRequest(url) //ビーコン領域進入したら
+            }
+        }
+    }
+
+    // 領域に対する状態が変化
+    override fun didDetermineStateForRegion(i: Int, region: Region) {
+        Log.d(TAG_BEACON, "Determine State: " + i)
     }
 
     //データを更新
@@ -324,21 +393,38 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     }
 
     override fun onMessageReceived(messageEvents: MessageEvent?) {
-        if (messageEvents!!.path == "/data_comm2") {
-            mMessage = String(messageEvents.data)
-            Log.d(mMessage, "受け取ったメッセージ")
+        if (messageEvents?.path.equals("/data_comm2")) {
+            mReceivedMessageFromWear = String(messageEvents!!.data)
+            Log.d(TAG_BEACON, "受け取ったメッセージ: $mReceivedMessageFromWear")
 
-            //取得した内容によって処理
-            if (mMessage == "getState" || mMessage == "wakeState") {
-                //TODO 鍵の情報の取得　wearに状態を表示させるための処理
-                //TODO doorStateに結果を代入
-                Log.d("データ", "送信")
-                sendDataByMessageApi(mState as String)
-            } else if (mMessage == "stateUpdate") {
-                if (mState == "open" || mState == "close") {
-                    //TODO 解錠施錠要求の送信　処理結果をwearに返す
-                    //TODO doorStateに結果を代入
+            //TODO: 取得した内容に応じ処理
+
+            // 問い合わせ要求時
+            if (mReceivedMessageFromWear.equals("getState")) {
+                //TODO: 鍵の情報の取得
+                Log.d(TAG_BEACON, "getState")
+                if (mState != null) {
+                    sendBroadCastToMainActivity(mState as String)
                     sendDataByMessageApi(mState as String)
+                } else {
+                    sendBroadCastToMainActivity("unknown")
+                    sendDataByMessageApi("unknown")
+                }
+                // 解錠施錠要求時
+            } else if (mReceivedMessageFromWear.equals("stateUpdate")) {
+                //TODO: 今のステートに応じて処理する。Wearに結果返すのは解錠施錠時。
+                if (!mState.equals("unknown")) {
+                    //TODO: 解錠施錠要求の送信
+                    if (mState.equals("locked")) {
+                        getRequest("http:/$mHost:10080/api/locks/unlocking/$mHashValue")
+                        Log.d("鍵", "あける");
+                        //doorState = open;
+                    } else if (mState.equals("unlocked")) {
+                        getRequest("http:/$mHost:10080/api/locks/locking/$mHashValue")
+                        Log.d("鍵", "しめる");
+                        //doorState = close;
+                    }
+                    //sendDataByMessageApi(doorState.toString())
                 }
             } else {
                 Log.d("要求", "通ってない")
@@ -347,7 +433,6 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     }
 
     override fun onConnected(bundle: Bundle?) {
-
         Log.d("onConnected", "実行")
     }
 
