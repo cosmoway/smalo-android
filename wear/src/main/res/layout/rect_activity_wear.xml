@@ -14,16 +14,12 @@
         android:layout_centerVertical="true"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white" />
-
-        <Button
+        <ImageButton
             android:id="@+id/btn_wear"
-            android:layout_width="130dp"
-            android:layout_height="130dp"
-            android:background="@drawable/smalo_search_icon" />
+            android:layout_width="128dp"
+            android:layout_height="128dp"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            android:src="@drawable/smalo_search_icon" />
     </LinearLayout>
 </RelativeLayout>

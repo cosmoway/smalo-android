@@ -31,7 +31,6 @@ import org.altbeacon.beacon.startup.RegionBootstrap
 import java.io.IOException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.*
 
 // BeaconServiceクラス
 class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
@@ -50,9 +49,6 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
     private var mState: String? = null
     // Nsd Manager
     private var mNsdManager: NsdManager? = null
-    private var mIsDiscoveryStarted: Boolean = false
-    // Flag of Unlock
-    private var mIsUnlocked: Boolean = false
     // Wakelock
     private var mWakeLock: PowerManager.WakeLock? = null
 
@@ -191,7 +187,7 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
     }
 
     fun ensureSystemServices() {
-        mNsdManager = getSystemService(Context.NSD_SERVICE) as NsdManager
+        mNsdManager = getSystemService(NSD_SERVICE) as NsdManager
         /*if (nsdManager == null) {
             return
         }*/
@@ -202,8 +198,7 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
     }
 
     private fun stopDiscovery() {
-        if (mIsDiscoveryStarted)
-            mNsdManager?.stopServiceDiscovery(MyDiscoveryListener())
+        mNsdManager?.stopServiceDiscovery(MyDiscoveryListener())
     }
 
     private inner class MyDiscoveryListener : NsdManager.DiscoveryListener {
@@ -216,17 +211,14 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
         }
 
         override fun onDiscoveryStarted(serviceType: String) {
-            mIsDiscoveryStarted = true
             Log.i(TAG_NSD, String.format("Discovery started serviceType=%s", serviceType))
         }
 
         override fun onDiscoveryStopped(serviceType: String) {
-            mIsDiscoveryStarted = false
             Log.i(TAG_NSD, String.format("Discovery stopped serviceType=%s", serviceType))
         }
 
         override fun onServiceLost(serviceInfo: NsdServiceInfo) {
-            mIsDiscoveryStarted = false
             Log.i(TAG_NSD, String.format("Service lost serviceInfo=%s", serviceInfo))
         }
 
@@ -253,6 +245,7 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
         override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
             Log.w(TAG_NSD, String.format("Failed to resolve serviceInfo=%s, errorCode=%d",
                     serviceInfo, errorCode))
+            startDiscovery()
         }
     }
 
@@ -280,7 +273,6 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
 
         // BTMのインスタンス化
         mBeaconManager = BeaconManager.getInstanceForApplication(this@MyBeaconService)
-        mIsUnlocked = false
 
         //Parserの設定
         val IBEACON_FORMAT: String = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"
@@ -292,8 +284,8 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
         if (mId == null) {
             Log.d("id", "null")
             // 端末固有識別番号取得
-            mId = UUID.randomUUID().toString()
-            //mId = "2df60388-e96e-4945-93d0-a4836ee75a3c"
+            //mId = UUID.randomUUID().toString()
+            mId = "2df60388-e96e-4945-93d0-a4836ee75a3c"
             // 端末固有識別番号記憶
             sp.edit().putString("SaveString", mId).apply()
         }
@@ -332,13 +324,12 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent != null) {
             var key: String? = intent.extras?.getString(MainActivity.KEY);
-            if (key != null && key != "") {
+            if (key != null && !key.equals("")) {
                 Log.d(TAG_BEACON, key)
                 getRequest("http:/$mHost:10080/api/locks/$key/$mHashValue")
             }
         }
         if (mHost == null) {
-            mIsDiscoveryStarted = false
             startDiscovery()
         }
         return START_STICKY
@@ -378,15 +369,13 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
         sendBroadCastToWidget("$MY_APP_NAPE\n領域に入りました。")
 
         // レンジング開始
-        if (mIsUnlocked == false) {
-            try {
-                mBeaconManager?.startRangingBeaconsInRegion(region)
-            } catch (e: RemoteException) {
-                e.printStackTrace()
-            }
-            //Beacon情報の取得
-            mBeaconManager?.setRangeNotifier(this)
+        try {
+            mBeaconManager?.startRangingBeaconsInRegion(region)
+        } catch (e: RemoteException) {
+            e.printStackTrace()
         }
+        //Beacon情報の取得
+        mBeaconManager?.setRangeNotifier(this)
     }
 
     // 領域退出
@@ -485,15 +474,16 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
                 //TODO: 鍵の情報の取得
                 Log.d(TAG_BEACON, "getState")
                 if (mState != null) {
-                    //sendDataByMessageApi(doorState.toString())
+                    sendBroadCastToMainActivity(mState as String)
                     sendDataByMessageApi(mState as String)
                 } else {
+                    sendBroadCastToMainActivity("unknown")
                     sendDataByMessageApi("unknown")
                 }
                 // 解錠施錠要求時
             } else if (mReceivedMessageFromWear.equals("stateUpdate")) {
                 //TODO: 今のステートに応じて処理する。Wearに結果返すのは解錠施錠時。
-                if (mState != "unknown") {
+                if (!mState.equals("unknown")) {
                     //TODO: 解錠施錠要求の送信
                     if (mState.equals("locked")) {
                         getRequest("http:/$mHost:10080/api/locks/unlocking/$mHashValue")
@@ -513,7 +503,6 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
     }
 
     override fun onConnected(bundle: Bundle?) {
-
         Log.d("onConnected", "実行")
     }
 

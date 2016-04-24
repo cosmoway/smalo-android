@@ -5,8 +5,7 @@ import android.os.Bundle
 import android.support.wearable.view.WatchViewStub
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.LinearLayout
+import android.widget.ImageButton
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.MessageApi
@@ -18,8 +17,7 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
     private val TAG = "ウェア"
 
     private var mApiClient: GoogleApiClient? = null
-    private var mButton: Button? = null
-    private var mLinearLayout: LinearLayout? = null
+    private var mButton: ImageButton? = null
     private var mMessage: String? = null
     private val wakeState = 0
     private val getState = 1
@@ -35,12 +33,15 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
 
         val stub = findViewById(R.id.watch_view_stub) as WatchViewStub
         stub.setOnLayoutInflatedListener { watchViewStub ->
-            mLinearLayout = watchViewStub.findViewById(R.id.ll) as LinearLayout
-            mButton = watchViewStub.findViewById(R.id.btn_wear) as Button
+            mButton = watchViewStub.findViewById(R.id.btn_wear) as ImageButton
             mButton!!.setOnClickListener(this@WearActivity)
         }
 
-        mApiClient = GoogleApiClient.Builder(this).addApi(Wearable.API).addConnectionCallbacks(this).addOnConnectionFailedListener(this).build()
+        mApiClient = GoogleApiClient.Builder(this)
+                .addApi(Wearable.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build()
 
         //データ更新をするメソッドを呼ぶ
         sendDataByMessageApi("getState")
@@ -49,7 +50,6 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
     override fun onResume() {
         super.onResume()
         mApiClient?.connect()
-        //sendDataByMessageApi(getState.toString())
         sendDataByMessageApi("getState")
         Log.d(TAG, "onResume")
     }
@@ -78,15 +78,15 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
 
     override fun onClick(viewHolder: View) {
         if (viewHolder == mButton) {
-            if (mState == "unknown") {
+            if (mState.equals("unknown")) {
                 Log.d(TAG, "サーチ中")
             } else if (mState.equals("unlocked") || mState.equals("locked")) {
                 Log.d(TAG, "開閉要求")
                 sendDataByMessageApi("stateUpdate")
-                if (mState == "unlocked") {
-                    mLinearLayout!!.setBackgroundResource(R.drawable.shape_yellow)
-                } else if (mState == "locked") {
-                    mLinearLayout!!.setBackgroundResource(R.drawable.shape_blue)
+                if (mState.equals("unlocked")) {
+                    mButton!!.setBackgroundResource(R.drawable.shape_yellow)
+                } else if (mState.equals("locked")) {
+                    mButton!!.setBackgroundResource(R.drawable.shape_blue)
                 }
             }
         }
@@ -102,11 +102,6 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
                         .sendMessage(mApiClient, node.id, "/data_comm2", message.toByteArray())
             }
         }).start()
-        //        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/data_wear");
-        //        putDataMapReq.getDataMap().putInt("key_wear", text);
-        //        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-        //        Wearable.DataApi.putDataItem(googleApiClient, putDataReq);
-        //Log.d(TAG, "データ送信");
     }
 
     override fun onMessageReceived(messageEvents: MessageEvent) {
@@ -117,35 +112,15 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
                 mMessage = String(messageEvents.data)
                 mState = mMessage as String
                 Log.d(mMessage, "動いた")
-                if (mMessage == "close") {
+                if (mMessage.equals("unlocked")) {
                     mButton!!.setBackgroundResource(R.drawable.smalo_close_button)
-                } else if (mMessage == "open") {
+                } else if (mMessage.equals("locked")) {
                     mButton!!.setBackgroundResource(R.drawable.smalo_open_button)
                 }
 
                 //ボタンの後ろの丸を消す
-                mLinearLayout!!.setBackgroundResource(R.drawable.shape_clear)
+                mButton!!.setBackgroundResource(R.drawable.shape_clear)
             }
         }
     }
-
-    //    @Override
-    //    public void onDataChanged(DataEventBuffer dataEvents) {
-    //        Log.d(TAG,"onDataChanged");
-    //        for(DataEvent event : dataEvents){
-    //            if(event.getType() == DataEvent.TYPE_CHANGED){
-    //                Log.d(TAG,"onDataChanged2");
-    //                DataItem item = event.getDataItem();
-    //                if(item.getUri().getPath().equals("/data_handheld")){
-    //                    final DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
-    //                    message = dataMap.getInt("key_handheld");
-    //                    textView.setText(""+message);
-    //                    doorState = message;
-    //                    Log.d(TAG,"動いた");
-    //                }
-    //            }else if(event.getType() == DataEvent.TYPE_DELETED){
-    //
-    //            }
-    //        }
-    //    }
 }
