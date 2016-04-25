@@ -165,7 +165,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     }
 
     fun ensureSystemServices() {
-        mNsdManager = getSystemService(Context.NSD_SERVICE) as NsdManager
+        mNsdManager = getSystemService(NSD_SERVICE) as NsdManager
         /*if (nsdManager == null) {
             return
         }*/
