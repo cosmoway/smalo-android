@@ -13,12 +13,15 @@ class MyBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
 
         val bundle = intent.extras
-        val state = bundle.getString("state")
+        val list = bundle.getStringArray("valueList")
+        val major = bundle.getString("major")
+        val minor = bundle.getString("minor")
 
         if (sHandler != null) {
             val msg = Message()
             val data = Bundle()
-            data.putString("state", state)
+            data.putString("major", major)
+            data.putString("minor", minor)
             msg.data = data
             sHandler!!.sendMessage(msg)
         }
