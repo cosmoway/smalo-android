@@ -13,17 +13,25 @@ class MyBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
 
         val bundle = intent.extras
-        val list = bundle.getStringArray("valueList")
         val major = bundle.getString("major")
         val minor = bundle.getString("minor")
+        val id = bundle.getString("id")
 
         if (sHandler != null) {
             val msg = Message()
             val data = Bundle()
             data.putString("major", major)
             data.putString("minor", minor)
+            data.putString("id", id)
             msg.data = data
             sHandler!!.sendMessage(msg)
+        }
+        val i: Intent = Intent(context, MainActivity::class.java)
+        i.flags = Intent.FLAG_ACTIVITY_NEW_TASK;
+
+        // 開閉処理時のみアクティビティを起こす。
+        if (id != null) {
+            context.startActivity(i);
         }
     }
 

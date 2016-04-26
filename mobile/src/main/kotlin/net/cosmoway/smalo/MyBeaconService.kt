@@ -226,7 +226,6 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
         broadcastIntent.putExtra("minor", minor)
         broadcastIntent.action = "UPDATE_ACTION"
         baseContext.sendBroadcast(broadcastIntent)
-
     }
 
     // 領域に対する状態が変化
