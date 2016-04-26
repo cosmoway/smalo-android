@@ -41,6 +41,7 @@ class MyCommunicationService : Service() {
     private var mMinor: String? = null
     private var mIntentFilter: IntentFilter? = null
 
+
     companion object {
         private val TAG_SERVICE = "MyCommunicationService"
         val TAG_NSD = "NSD"
@@ -98,6 +99,7 @@ class MyCommunicationService : Service() {
                 if (result != null) {
                     makeNotification(result)
                     if (result == "200 OK") {
+                        Log.d("result", result)
                         // TODO:resultをブロキャスしてサービスを自滅させる
                         val uri: Uri = RingtoneManager
                                 .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
@@ -125,7 +127,7 @@ class MyCommunicationService : Service() {
 
     private fun sendBroadcast() {
         val broadcastIntent: Intent = Intent()
-        broadcastIntent.putExtra("startFlag", mId)
+        broadcastIntent.putExtra("id", mId)
         broadcastIntent.action = "UPDATE_ACTION"
         baseContext.sendBroadcast(broadcastIntent)
     }
@@ -238,7 +240,7 @@ class MyCommunicationService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG_SERVICE,"Created")
+        Log.d(TAG_SERVICE, "Created")
         mReceiver = MyBroadcastReceiver()
         mIntentFilter = IntentFilter()
         (mIntentFilter as IntentFilter).addAction("UPDATE_ACTION")
@@ -253,7 +255,7 @@ class MyCommunicationService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG_SERVICE,"Command Started")
+        Log.d(TAG_SERVICE, "Command Started")
         var id: String? = intent?.extras?.getString("id")
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         // 端末固有識別番号読出
