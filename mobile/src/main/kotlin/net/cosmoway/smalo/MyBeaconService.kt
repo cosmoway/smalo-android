@@ -212,7 +212,7 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
             //配列
             val list: Array<String> = arrayOf(beacon.id2.toString(), beacon.id3.toString())
             //sendBroadcastToMainActivity(list)
-            sendBroadcastToMainActivity(beacon.id2.toString(), beacon.id3.toString())
+            sendBroadcast(beacon.id2.toString(), beacon.id3.toString())
             if (mHost != null && beacon.distance != -1.0
                     && beacon.id1.toString() == MY_SERVICE_UUID) {
 
@@ -220,7 +220,7 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
         }
     }
 
-    private fun sendBroadcastToMainActivity(major: String, minor: String) {
+    private fun sendBroadcast(major: String, minor: String) {
         val broadcastIntent: Intent = Intent()
         broadcastIntent.putExtra("major", major)
         broadcastIntent.putExtra("minor", minor)

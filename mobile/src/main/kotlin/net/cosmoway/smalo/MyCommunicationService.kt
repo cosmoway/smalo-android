@@ -272,7 +272,7 @@ class MyCommunicationService : Service() {
         if (mHost == null) {
             startDiscovery()
         }
-        return START_STICKY_COMPATIBILITY;
+        return START_STICKY;
     }
 
     override fun onBind(intent: Intent?): IBinder? {
