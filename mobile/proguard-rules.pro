@@ -20,10 +20,7 @@
    public void *(android.view.View);
 }
 
--dontwarn android.**
--dontwarn okio.**
--dontwarn com.squareup.okhttp3.**
--dontwarn org.altbeacon.**
+-ignorewarnings
 
 -keep class com.squareup.okhttp3.** { *; }
 -keep interface com.squareup.okhttp3.* { *; }
