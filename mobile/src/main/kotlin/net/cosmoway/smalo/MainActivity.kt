@@ -34,6 +34,8 @@ class MainActivity : Activity(), View.OnClickListener {
     private var mAnimatorSet1: AnimatorSet? = null
     private var mAnimatorSet2: AnimatorSet? = null
     private var mAnimatorSet3: AnimatorSet? = null
+    private var mAnimatorSet4: AnimatorSet? = null
+    private var mAnimatorSet5: AnimatorSet? = null
     private var mOval1: ImageView? = null
     private var mOval2: ImageView? = null
     private var mOval3: ImageView? = null
@@ -52,11 +54,11 @@ class MainActivity : Activity(), View.OnClickListener {
 
     private fun animationStart() {
         Log.d(TAG, "animStart")
-        mOval4?.visibility = View.GONE
-        mOval5?.visibility = View.GONE
         mAnimatorSet1?.start()
         mAnimatorSet2?.start()
         mAnimatorSet3?.start()
+        mAnimatorSet4?.start()
+        mAnimatorSet5?.start()
     }
 
     private fun animationEnd() {
@@ -64,6 +66,8 @@ class MainActivity : Activity(), View.OnClickListener {
         mAnimatorSet1?.end()
         mAnimatorSet2?.end()
         mAnimatorSet3?.end()
+        mAnimatorSet4?.end()
+        mAnimatorSet5?.end()
     }
 
     //TODO: サービスからブロードキャストされ、値を受け取った時に動かしたい内容を書く。
@@ -153,12 +157,21 @@ class MainActivity : Activity(), View.OnClickListener {
     }
 
     private fun setAnimators() {
-        mAnimatorSet1 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval1) as AnimatorSet;
-        mAnimatorSet2 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval2) as AnimatorSet;
-        mAnimatorSet3 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval3) as AnimatorSet;
+        mAnimatorSet1 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
+        mAnimatorSet2 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
+        mAnimatorSet3 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
+        mAnimatorSet4 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
+        mAnimatorSet5 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
         (mAnimatorSet1 as AnimatorSet).setTarget(mOval1);
         (mAnimatorSet2 as AnimatorSet).setTarget(mOval2);
         (mAnimatorSet3 as AnimatorSet).setTarget(mOval3);
+        (mAnimatorSet4 as AnimatorSet).setTarget(mOval4);
+        (mAnimatorSet5 as AnimatorSet).setTarget(mOval5);
+        (mAnimatorSet1 as AnimatorSet).startDelay = 0;
+        (mAnimatorSet2 as AnimatorSet).startDelay = 800;
+        (mAnimatorSet3 as AnimatorSet).startDelay = 1600;
+        (mAnimatorSet4 as AnimatorSet).startDelay = 2400;
+        (mAnimatorSet5 as AnimatorSet).startDelay = 3200;
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
