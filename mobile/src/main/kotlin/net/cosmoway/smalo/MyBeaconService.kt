@@ -108,7 +108,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
             override fun onPostExecute(result: String?) {
                 if (result != null) {
                     makeNotification(result)
-                    if (result == "200 OK") {
+                    if (result.equals("200 OK")) {
                         sendBroadCast(result)
                         val uri: Uri = RingtoneManager
                                 .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
@@ -116,7 +116,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
                                 .getRingtone(applicationContext, uri)
                         ringtone.play()
                         mIsUnlocked == true
-                    } else if (result == "locked" || result == "unlocked" || result == "unknown") {
+                    } else if (result.equals("locked") || result.equals("unlocked") || result.equals("unknown")) {
                         sendBroadCast(result)
                         mState = result
                         sendDataByMessageApi(result)
@@ -140,13 +140,13 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
                 notificationIntent, 0)
 
         builder.setContentTitle(title) // 1行目
-        if (title == "locked") {
+        if (title.equals("locked")) {
             builder.setContentText("施錠されております。")
-        } else if (title == "unlocked") {
+        } else if (title.equals("unlocked")) {
             builder.setContentText("解錠されております。")
-        } else if (title == "unknown") {
+        } else if (title.equals("unknown")) {
             builder.setContentText("鍵の状態が判りませんでした。")
-        } else if (title == "Connection Error") {
+        } else if (title.equals("Connection Error")) {
             builder.setContentText("通信処理が正常に終了されませんでした。\n通信環境を御確認下さい。")
         } else if (title.indexOf("400") != -1) {
             builder.setContentText("予期せぬエラーが発生致しました。\n開発者に御問合せ下さい。")
@@ -248,6 +248,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG_SERVICE, "created")
+        mIsUnlocked = false
 
         // TODO:端末固有識別番号読出
         val sp = PreferenceManager.getDefaultSharedPreferences(this)
@@ -304,18 +305,19 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG_SERVICE, "Command Started")
-        val extra: String? = intent?.extras!!.getString("timer");
-        val key: String? = intent?.extras!!.getString("key");
+        val extra: String? = intent?.extras!!.getString("extra");
         if (extra.equals("start")) {
             //TODO:タイマースケジュール設定＆開始
-            mTimer?.schedule(mTimerTask, 2000, 2000)
+            try {
+                mTimer?.schedule(mTimerTask, 2000, 2000)
+            } catch(e: IllegalStateException) {
+                e.printStackTrace()
+            }
         } else if (extra.equals("stop")) {
             //TODO:タイマーのキャンセル
             mTimer?.cancel()
-        }
-        if (!key.equals(null)) {
-            Log.d(TAG_SERVICE, "key:$key")
-            getRequest("http:/$mHost:10080/api/locks/$key/$mHashValue")
+        } else if (extra.equals("locking") || extra.equals("unlocking")) {
+            getRequest("http:/$mHost:10080/api/locks/$extra/$mHashValue")
         }
         if (mHost == null) {
             startDiscovery()
@@ -423,9 +425,9 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     }
 
     override fun onMessageReceived(messageEvents: MessageEvent?) {
-        if (messageEvents?.path.equals("/data_comm2")) {
+        if (messageEvents?.path == "/data_comm2") {
             mReceivedMessageFromWear = String(messageEvents!!.data)
-            Log.d(TAG_SERVICE, "受け取ったメッセージ: $mReceivedMessageFromWear")
+            Log.d(TAG_SERVICE, "receivedMessage: $mReceivedMessageFromWear")
 
             //TODO: 取得した内容に応じ処理
             // 問い合わせ要求時
@@ -441,6 +443,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
                 }
                 // 解錠施錠要求時
             } else if (mReceivedMessageFromWear.equals("stateUpdate")) {
+                Log.d(TAG_API, "locking")
                 //TODO: 今のステートに応じて処理する。Wearに結果返すのは解錠施錠時。
                 if (!mState.equals("unknown")) {
                     //TODO: 解錠施錠要求の送信

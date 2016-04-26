@@ -249,22 +249,22 @@ class MainActivity : Activity(), View.OnClickListener {
     private val updateHandler = object : Handler() {
         override fun handleMessage(msg: Message) {
             val bundle = msg.data
-            val result = bundle.getString("state")
-            if (result == "locked" || (result == "200 OK" && mIsLocked == false)) {
+            mState = bundle.getString("state")
+            if (mState.equals("locked") || (mState.equals("200 OK") && mIsLocked == false)) {
                 mIsLocked = true
                 Log.d(TAG, "message:L")
                 animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_close_button)
                 mLockButton?.isEnabled = true
                 mOval4?.visibility = View.VISIBLE
-            } else if (result == "unlocked" || (result == "200 OK" && mIsLocked == true)) {
+            } else if (mState.equals("unlocked") || (mState.equals("200 OK") && mIsLocked == true)) {
                 mIsLocked = false
                 Log.d(TAG, "message:UL")
                 animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_open_button)
                 mLockButton?.isEnabled = true
                 mOval5?.visibility = View.VISIBLE
-            } else if (result == "unknown") {
+            } else if (mState.equals("unknown")) {
                 Log.d(TAG, "message:UK")
                 mLockButton?.setImageResource(R.drawable.smalo_search_icon)
                 mLockButton?.isEnabled = false
@@ -396,7 +396,7 @@ class MainActivity : Activity(), View.OnClickListener {
         Log.d(TAG, "Resumed")
         window.addFlags(FLAG_KEYGUARD)
         val intent: Intent = Intent(this, MyBeaconService::class.java)
-        intent.putExtra("timer", "start")
+        intent.putExtra("extra", "start")
         startService(intent)
     }
 
@@ -416,30 +416,23 @@ class MainActivity : Activity(), View.OnClickListener {
             mAnimatorSet3?.end()
             mAnimatorSet3 = null
         }
-        if (mAnimatorSet4 != null) {
-            mAnimatorSet4?.end()
-            mAnimatorSet4 = null
-        }
-        if (mAnimatorSet5 != null) {
-            mAnimatorSet5?.end()
-            mAnimatorSet5 = null
-        }
-        val intent: Intent = Intent(this, MyCommunicationService::class.java)
-        intent.putExtra("id", mId)
+        val intent: Intent = Intent(this, MyBeaconService::class.java)
+        intent.putExtra("extra", "stop")
         startService(intent)
     }
 
     override fun onClick(v: View?) {
         if (v == mLockButton) {
-            Log.d("Button", "Lock")
             if (mState != null) {
-                if (mState == "locked") {
+                if (mState.equals("locked")) {
+                    Log.d("Button", "unlocking")
                     val intent: Intent = Intent(this, MyBeaconService::class.java)
-                    intent.putExtra("key", "unlocking")
+                    intent.putExtra("extra", "unlocking")
                     startService(intent)
-                } else if (mState == "unlocked") {
+                } else if (mState.equals("unlocked")) {
+                    Log.d("Button", "locking")
                     val intent: Intent = Intent(this, MyBeaconService::class.java)
-                    intent.putExtra("key", "locking")
+                    intent.putExtra("extra", "locking")
                     startService(intent)
                 }
             }
