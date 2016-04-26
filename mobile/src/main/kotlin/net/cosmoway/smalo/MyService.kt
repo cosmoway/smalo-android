@@ -25,9 +25,8 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
 
-// BeaconServiceクラス
-class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
-        MonitorNotifier {
+class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
+        MonitorNotifier, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     // BGで監視するiBeacon領域
     private var mRegionBootstrap: RegionBootstrap? = null
@@ -270,7 +269,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
         val identifier: Identifier = Identifier.parse(MY_SERVICE_UUID)
 
         // Beacon名の作成
-        val beaconId = this@MyBeaconService.packageName
+        val beaconId = this@MyService.packageName
         // major, minorの指定はしない
         mRegion = Region(beaconId, identifier, null, null)
         //mRegion = Region(beaconId, null, null, null)

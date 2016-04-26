@@ -20,7 +20,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 
-class MainActivity : Activity(), View.OnClickListener {
+class MobileActivity : Activity(), View.OnClickListener {
 
     private var mReceiver: MyBroadcastReceiver? = null
     private var mState: String? = null
@@ -354,7 +354,7 @@ class MainActivity : Activity(), View.OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_mobile)
         Log.d(TAG, "Created")
 
         findViews()
@@ -398,7 +398,7 @@ class MainActivity : Activity(), View.OnClickListener {
         super.onResume()
         Log.d(TAG, "Resumed")
         window.addFlags(FLAG_KEYGUARD)
-        val intent: Intent = Intent(this, MyBeaconService::class.java)
+        val intent: Intent = Intent(this, MyService::class.java)
         intent.putExtra("extra", "start")
         startService(intent)
     }
@@ -419,7 +419,7 @@ class MainActivity : Activity(), View.OnClickListener {
             mAnimatorSet3?.end()
             mAnimatorSet3 = null
         }
-        val intent: Intent = Intent(this, MyBeaconService::class.java)
+        val intent: Intent = Intent(this, MyService::class.java)
         intent.putExtra("extra", "stop")
         startService(intent)
     }
@@ -429,12 +429,12 @@ class MainActivity : Activity(), View.OnClickListener {
             if (mState != null) {
                 if (mState.equals("locked")) {
                     Log.d("Button", "unlocking")
-                    val intent: Intent = Intent(this, MyBeaconService::class.java)
+                    val intent: Intent = Intent(this, MyService::class.java)
                     intent.putExtra("extra", "unlocking")
                     startService(intent)
                 } else if (mState.equals("unlocked")) {
                     Log.d("Button", "locking")
-                    val intent: Intent = Intent(this, MyBeaconService::class.java)
+                    val intent: Intent = Intent(this, MyService::class.java)
                     intent.putExtra("extra", "locking")
                     startService(intent)
                 }
