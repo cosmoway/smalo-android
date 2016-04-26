@@ -462,17 +462,14 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
             } else if (mReceivedMessageFromWear.equals("stateUpdate")) {
                 Log.d(TAG_API, "locking")
                 //TODO: 今のステートに応じて処理する。Wearに結果返すのは解錠施錠時。
-                if (!mState.equals("unknown")) {
-                    //TODO: 解錠施錠要求の送信
-                    if (mState.equals("locked")) {
-                        //TODO:開処理リクエスト。
-                        getRequest("http:/$mHost:10080/api/locks/unlocking/$mHashValue")
-                        Log.d("鍵", "あける");
-                    } else if (mState.equals("unlocked")) {
-                        //TODO:閉処理リクエスト。
-                        getRequest("http:/$mHost:10080/api/locks/locking/$mHashValue")
-                        Log.d("鍵", "しめる");
-                    }
+                if (mState.equals("locked")) {
+                    //TODO:開処理リクエスト。
+                    getRequest("http:/$mHost:10080/api/locks/unlocking/$mHashValue")
+                    Log.d("鍵", "あける");
+                } else if (mState.equals("unlocked")) {
+                    //TODO:閉処理リクエスト。
+                    getRequest("http:/$mHost:10080/api/locks/locking/$mHashValue")
+                    Log.d("鍵", "しめる");
                 }
             } else {
                 Log.d("要求", "通ってない")
