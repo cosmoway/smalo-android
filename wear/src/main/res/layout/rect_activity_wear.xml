@@ -13,5 +13,6 @@
         android:layout_gravity="center"
         android:background="@null"
         android:scaleType="fitCenter"
+        android:clickable="false"
         android:src="@drawable/smalo_search_icon" />
 </FrameLayout>

@@ -78,6 +78,7 @@ class MainActivity : Activity(), View.OnClickListener {
             if (mState.equals("locked") || (mState.equals("200 OK") && mIsLocked == false)) {
                 mIsLocked = true
                 Log.d(TAG, "message:L")
+                mLockButton?.isClickable = true
                 animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_close_button)
                 mLockButton?.isEnabled = true
@@ -85,12 +86,14 @@ class MainActivity : Activity(), View.OnClickListener {
             } else if (mState.equals("unlocked") || (mState.equals("200 OK") && mIsLocked == true)) {
                 mIsLocked = false
                 Log.d(TAG, "message:UL")
+                mLockButton?.isClickable = true
                 animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_open_button)
                 mLockButton?.isEnabled = true
                 mOval5?.visibility = View.VISIBLE
             } else if (mState.equals("unknown")) {
                 Log.d(TAG, "message:UK")
+                mLockButton?.isClickable = false
                 mLockButton?.setImageResource(R.drawable.smalo_search_icon)
                 mLockButton?.isEnabled = false
                 mOval4?.visibility = View.GONE

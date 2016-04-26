@@ -11,8 +11,8 @@
         android:layout_width="128dp"
         android:layout_height="128dp"
         android:layout_gravity="center"
-        android:layout_margin="20dp"
         android:background="@null"
         android:scaleType="fitCenter"
+        android:clickable="false"
         android:src="@drawable/smalo_search_icon" />
 </FrameLayout>
