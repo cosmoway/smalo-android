@@ -194,6 +194,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
     }
 
     private fun sendBroadcast(major: String, minor: String) {
+        Log.d(TAG_BEACON, "sendBroadcast")
         val broadcastIntent: Intent = Intent()
         broadcastIntent.putExtra("major", major)
         broadcastIntent.putExtra("minor", minor)

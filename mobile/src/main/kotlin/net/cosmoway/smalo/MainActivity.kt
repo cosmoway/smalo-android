@@ -348,6 +348,7 @@ class MainActivity : Activity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        Log.d(TAG, "Created")
 
         findViews()
         setOnClickListeners()
@@ -425,6 +426,7 @@ class MainActivity : Activity(), View.OnClickListener {
 
     override fun onResume() {
         super.onResume()
+        Log.d(TAG, "Resumed")
         window.addFlags(FLAG_KEYGUARD)
         val intent: Intent = Intent(this, MyBeaconService::class.java)
         startService(intent)
@@ -435,6 +437,7 @@ class MainActivity : Activity(), View.OnClickListener {
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d(TAG, "Destroyed")
         unregisterReceiver(mReceiver)
         if (mAnimatorSet1 != null) {
             mAnimatorSet1?.end()
