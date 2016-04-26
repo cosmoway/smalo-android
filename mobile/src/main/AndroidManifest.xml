@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!--BLE対応機種のみインストール可とするよう設定-->
@@ -42,10 +43,12 @@
         <service
             android:name=".MyBeaconService"
             android:enabled="true" />
+        <service
+            android:name=".MyCommunicationService"
+            android:enabled="true" />
 
         <receiver
             android:name=".MyBootReceiver"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
             android:process=":remote">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
