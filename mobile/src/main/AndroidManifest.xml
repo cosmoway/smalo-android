@@ -32,7 +32,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".MobileActivity"
             android:launchMode="singleTop"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -43,7 +43,7 @@
         </activity>
 
         <service
-            android:name=".MyBeaconService"
+            android:name=".MyService"
             android:enabled="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.BIND_LISTENER" />
