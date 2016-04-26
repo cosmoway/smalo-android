@@ -50,6 +50,7 @@ class MainActivity : Activity(), View.OnClickListener {
     // MM
     private var mMajor: String? = null
     private var mMinor: String? = null
+    private var sp: SharedPreferences? = null
 
     private var mIsLocked: Boolean? = null
     private var mIntentFilter: IntentFilter? = null
@@ -74,7 +75,13 @@ class MainActivity : Activity(), View.OnClickListener {
                         WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
         private val REQUEST_PERMISSION = 1
         private val TAG = "MainActivity"
-        private val MY_APP_NAME = "ＳＭＡＬＯ"
+        val TAG_NSD = "NSD"
+        val SERVICE_TYPE = "_xdk-app-daemon._tcp."
+        val MY_SERVICE_NAME = "smalo"
+        //val MY_SERVICE_NAME = "smalo-dev"
+        //val MY_SERVICE_UUID = "dddddddddddddddddddddddddddddddd"
+
+        val MY_APP_NAME = "ＳＭＡＬＯ"
     }
 
     private fun toEncryptedHashValue(algorithmName: String, value: String): String {
@@ -190,7 +197,6 @@ class MainActivity : Activity(), View.OnClickListener {
 
         val manager = NotificationManagerCompat.from(applicationContext)
         manager.notify(1, builder.build())
-
     }
 
     fun ensureSystemServices() {
@@ -201,7 +207,7 @@ class MainActivity : Activity(), View.OnClickListener {
     }
 
     private fun startDiscovery() {
-        mNsdManager?.discoverServices(MyBeaconService.SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, MyDiscoveryListener())
+        mNsdManager?.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, MyDiscoveryListener())
     }
 
     private fun stopDiscovery() {
@@ -210,47 +216,47 @@ class MainActivity : Activity(), View.OnClickListener {
 
     private inner class MyDiscoveryListener : NsdManager.DiscoveryListener {
         override fun onServiceFound(serviceInfo: NsdServiceInfo) {
-            Log.i(MyBeaconService.TAG_NSD, String.format("Service found serviceInfo=%s", serviceInfo))
-            if (serviceInfo.serviceType.equals(MyBeaconService.SERVICE_TYPE) &&
-                    serviceInfo.serviceName == MyBeaconService.MY_SERVICE_NAME) {
+            Log.i(TAG_NSD, String.format("Service found serviceInfo=%s", serviceInfo))
+            if (serviceInfo.serviceType.equals(SERVICE_TYPE) &&
+                    serviceInfo.serviceName == MY_SERVICE_NAME) {
                 mNsdManager?.resolveService(serviceInfo, MyResolveListener())
             }
         }
 
         override fun onDiscoveryStarted(serviceType: String) {
-            Log.i(MyBeaconService.TAG_NSD, String.format("Discovery started serviceType=%s", serviceType))
+            Log.i(TAG_NSD, String.format("Discovery started serviceType=%s", serviceType))
         }
 
         override fun onDiscoveryStopped(serviceType: String) {
-            Log.i(MyBeaconService.TAG_NSD, String.format("Discovery stopped serviceType=%s", serviceType))
+            Log.i(TAG_NSD, String.format("Discovery stopped serviceType=%s", serviceType))
         }
 
         override fun onServiceLost(serviceInfo: NsdServiceInfo) {
-            Log.i(MyBeaconService.TAG_NSD, String.format("Service lost serviceInfo=%s", serviceInfo))
+            Log.i(TAG_NSD, String.format("Service lost serviceInfo=%s", serviceInfo))
         }
 
         override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
-            Log.w(MyBeaconService.TAG_NSD, String.format("Failed to start discovery serviceType=%s, errorCode=%d",
+            Log.w(TAG_NSD, String.format("Failed to start discovery serviceType=%s, errorCode=%d",
                     serviceType, errorCode))
         }
 
         override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) {
-            Log.w(MyBeaconService.TAG_NSD, String.format("Failed to stop discovery serviceType=%s, errorCode=%d",
+            Log.w(TAG_NSD, String.format("Failed to stop discovery serviceType=%s, errorCode=%d",
                     serviceType, errorCode))
         }
     }
 
     private inner class MyResolveListener : NsdManager.ResolveListener {
         override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-            Log.i(MyBeaconService.TAG_NSD, String.format("Service resolved serviceInfo=%s", serviceInfo.host))
-            if (serviceInfo.serviceName == MyBeaconService.MY_SERVICE_NAME) {
+            Log.i(TAG_NSD, String.format("Service resolved serviceInfo=%s", serviceInfo.host))
+            if (serviceInfo.serviceName == MY_SERVICE_NAME) {
                 mHost = serviceInfo.host.toString()
                 //stopDiscovery()
             }
         }
 
         override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-            Log.w(MyBeaconService.TAG_NSD, String.format("Failed to resolve serviceInfo=%s, errorCode=%d",
+            Log.w(TAG_NSD, String.format("Failed to resolve serviceInfo=%s, errorCode=%d",
                     serviceInfo, errorCode))
         }
     }
@@ -271,16 +277,19 @@ class MainActivity : Activity(), View.OnClickListener {
         mAnimatorSet3?.end()
     }
 
-    // サービスから値を受け取った時に動かしたい内容を書く
+    // サービスからブロードキャストされ、値を受け取った時に動かしたい内容を書く
     private val updateHandler = object : Handler() {
         override fun handleMessage(msg: Message) {
             val bundle = msg.data
             mMajor = bundle.getString("major")
             mMinor = bundle.getString("minor")
-            Log.d(TAG, "message:$mMajor,$mMinor")
+            if (bundle.getString("id") != null) {
+                mId = bundle.getString("id")
+            }
+            sp?.edit()?.putString("SaveString", mId)?.apply()
+            Log.d(TAG, "major:$mMajor, minor:$mMinor")
             mHashValue = toEncryptedHashValue("SHA-256", "$mId|$mMajor|$mMinor")
         }
-
     }
 
     private fun requestLocationPermission() {
@@ -343,6 +352,7 @@ class MainActivity : Activity(), View.OnClickListener {
         findViews()
         setOnClickListeners()
         setAnimators()
+        animationStart()
 
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "BLE非対応端末です", Toast.LENGTH_SHORT).show();
@@ -353,18 +363,14 @@ class MainActivity : Activity(), View.OnClickListener {
         requestAccessStoragePermission()
         requestBatteryPermission()
 
-        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         // 端末固有識別番号読出
-        mId = sp.getString("SaveString", null)
+        sp = PreferenceManager.getDefaultSharedPreferences(this)
+        mId = sp?.getString("SaveString", null)
         if (mId == null) {
             Log.d("id", "null")
             // 端末固有識別番号取得
-            //mId = UUID.randomUUID().toString()
-            mId = "2df60388-e96e-4945-93d0-a4836ee75a3c" //Ando
-            //mId = "0648eb1d-e429-434a-a16d-12216b3f0701" //GS6
-            //mId = "d83d617a-e76c-4d33-ae99-0b6ea843129e" //KN6
-            // 端末固有識別番号記憶
-            sp.edit().putString("SaveString", mId).apply()
+            mId = UUID.randomUUID().toString()
+            sp?.edit()?.putString("SaveString", mId)?.apply()
         }
 
         //permission check
@@ -425,7 +431,6 @@ class MainActivity : Activity(), View.OnClickListener {
         if (mHost == null) {
             startDiscovery()
         }
-        animationStart()
     }
 
     override fun onDestroy() {
@@ -443,6 +448,9 @@ class MainActivity : Activity(), View.OnClickListener {
             mAnimatorSet3?.end()
             mAnimatorSet3 = null
         }
+        val intent: Intent = Intent(this, MyCommunicationService::class.java)
+        intent.putExtra("id", mId)
+        startService(intent)
     }
 
     override fun onClick(v: View?) {
@@ -462,7 +470,8 @@ class MainActivity : Activity(), View.OnClickListener {
     inner class MainTimerTask : TimerTask() {
         override fun run() {
             mHandler.post {
-                getRequest("http:/$mHost:10080/api/locks/status/$mHashValue")
+                if (mHost != null && mHashValue != null)
+                    getRequest("http:/$mHost:10080/api/locks/status/$mHashValue")
             }
         }
     }

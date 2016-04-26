@@ -199,7 +199,6 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
         broadcastIntent.putExtra("minor", minor)
         broadcastIntent.action = "UPDATE_ACTION"
         baseContext.sendBroadcast(broadcastIntent)
-
     }
 
     // 領域に対する状態が変化
