@@ -28,7 +28,7 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
         val stub = findViewById(R.id.watch_view_stub) as WatchViewStub
         stub.setOnLayoutInflatedListener { watchViewStub ->
             mButton = watchViewStub.findViewById(R.id.btn_wear) as ImageButton
-            mButton!!.setOnClickListener(this@WearActivity)
+            mButton!!.setOnClickListener(this)
         }
 
         mApiClient = GoogleApiClient.Builder(this)
