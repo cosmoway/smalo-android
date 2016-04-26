@@ -271,6 +271,7 @@ class MyCommunicationService : Service() {
             // 端末固有識別番号記憶
             sp.edit().putString("SaveString", mId).apply()
         }
+        Log.d("id", mId)
         if (mHost == null) {
             startDiscovery()
         }

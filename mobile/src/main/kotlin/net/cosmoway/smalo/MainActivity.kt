@@ -373,6 +373,7 @@ class MainActivity : Activity(), View.OnClickListener {
             mId = UUID.randomUUID().toString()
             sp?.edit()?.putString("SaveString", mId)?.apply()
         }
+        Log.d("id", mId)
 
         //permission check
         val wifiManager: WifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
