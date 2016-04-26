@@ -242,6 +242,7 @@ class MyBeaconService : Service(), BeaconConsumer, BootstrapNotifier, RangeNotif
             Log.d("id", "null")
             // 端末固有識別番号取得
             //mId = UUID.randomUUID().toString()
+            // TODO: デバッグ用UUID 後で消す
             mId = "2df60388-e96e-4945-93d0-a4836ee75a3c"
             // 端末固有識別番号記憶
             sp.edit().putString("SaveString", mId).apply()
