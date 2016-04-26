@@ -45,9 +45,6 @@
         <service
             android:name=".MyBeaconService"
             android:enabled="true" />
-        <service
-            android:name=".MyCommunicationService"
-            android:enabled="true" />
 
         <receiver
             android:name=".MyBootReceiver"
