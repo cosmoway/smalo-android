@@ -39,19 +39,17 @@
 
     <ImageView
         android:id="@+id/oval4"
-        android:layout_width="192dp"
-        android:layout_height="192dp"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
         android:layout_gravity="center"
-        android:src="@drawable/oval4"
-        android:visibility="gone" />
+        android:src="@drawable/oval" />
 
     <ImageView
         android:id="@+id/oval5"
-        android:layout_width="192dp"
-        android:layout_height="192dp"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
         android:layout_gravity="center"
-        android:src="@drawable/oval5"
-        android:visibility="gone" />
+        android:src="@drawable/oval" />
 
     <ImageButton
         android:id="@+id/btn_lock"
