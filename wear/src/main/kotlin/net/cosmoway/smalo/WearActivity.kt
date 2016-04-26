@@ -19,12 +19,6 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
     private var mApiClient: GoogleApiClient? = null
     private var mButton: ImageButton? = null
     private var mMessage: String? = null
-    private val wakeState = 0
-    private val getState = 1
-    private val stateUpdate = 2
-    internal val unknown = 10
-    internal val close = 11
-    internal val open = 12
     private var mState = "unknown"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,9 +73,9 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
     override fun onClick(viewHolder: View) {
         if (viewHolder == mButton) {
             if (mState.equals("unknown")) {
-                Log.d(TAG, "サーチ中")
-            } else if (mState == "close" || mState == "open") {
-                Log.d(TAG, "開閉要求")
+                Log.d(TAG, "onSearch")
+            } else if (mState.equals("unlocked") || mState.equals("locked")) {
+                Log.d(TAG, "onRequire")
                 sendDataByMessageApi("stateUpdate")
                 if (mState.equals("unlocked")) {
                     mButton!!.setBackgroundResource(R.drawable.shape_yellow)
@@ -103,19 +97,16 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
     }
 
     override fun onMessageReceived(messageEvents: MessageEvent) {
-        Log.d(TAG, "レシーブ")
         if (messageEvents.path == "/data_comm") {
-            Log.d(TAG, "パスOK")
             runOnUiThread {
+                Log.d(TAG, "stateReceived")
                 mMessage = String(messageEvents.data)
                 mState = mMessage as String
-                Log.d(mMessage, "動いた")
-                if (mMessage.equals("unlocked")) {
-                    mButton!!.setBackgroundResource(R.drawable.smalo_close_button)
-                } else if (mMessage.equals("locked")) {
-                    mButton!!.setBackgroundResource(R.drawable.smalo_open_button)
+                if (mMessage.equals("locked")) {
+                    mButton!!.setImageResource(R.drawable.smalo_close_button)
+                } else if (mMessage.equals("unlocked")) {
+                    mButton!!.setImageResource(R.drawable.smalo_open_button)
                 }
-
                 //ボタンの後ろの丸を消す
                 mButton!!.setBackgroundResource(R.drawable.shape_clear)
             }
