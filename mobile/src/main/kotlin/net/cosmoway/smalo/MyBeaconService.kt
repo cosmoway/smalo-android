@@ -221,6 +221,7 @@ class MyBeaconService : WearableListenerService(), BeaconConsumer, BootstrapNoti
     }
 
     private fun sendBroadcast(major: String, minor: String) {
+        Log.d(TAG_BEACON, "sendBroadcast")
         val broadcastIntent: Intent = Intent()
         broadcastIntent.putExtra("major", major)
         broadcastIntent.putExtra("minor", minor)
