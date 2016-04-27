@@ -105,15 +105,16 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             override fun onPostExecute(result: String?) {
                 if (result != null) {
                     if (result.equals("locked") || result.equals("unlocked") || result.equals("unknown")) {
+                        sendDataByMessageApi(result)
                         sendBroadCast(result)
                         mState = result
-                        sendDataByMessageApi(result)
                         if (result == "locked" && mIsUnlocked == false && mIsBackground == true) {
                             //TODO:開処理リクエスト。
                             getRequest("http:/$mHost:10080/api/locks/unlocking/$mHashValue")
                         }
                     } else {
                         if (result.equals("200 OK")) {
+                            sendDataByMessageApi(result)
                             sendBroadCast(result)
                             val uri: Uri = RingtoneManager
                                     .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
@@ -318,6 +319,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             mTimer?.cancel()
         } else if (extra.equals("locking") || extra.equals("unlocking")) {
             getRequest("http:/$mHost:10080/api/locks/$extra/$mHashValue")
+
         }
         if (mHost == null) {
             startDiscovery()
@@ -336,7 +338,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             e.printStackTrace()
         }
         mWakeLock?.release()
-        stopDiscovery()
         mBeaconManager = null
     }
 
@@ -379,7 +380,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                     + ", RSSI:" + beacon.rssi + ", txPower:" + beacon.txPower)
 
             // 距離種別
-            var proximity: String = "proximity"
+            /*var proximity: String = "proximity"
 
             if (beacon.distance < 0.0) {
                 proximity = "Unknown"
@@ -392,8 +393,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
             } else if (beacon.distance > 3.0) {
                 proximity = "Far"
-
-            }
+            }*/
 
             sendBroadcast(beacon.id2.toString(), beacon.id3.toString())
             val major: String = beacon.id2.toString()
@@ -418,7 +418,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             Log.d(TAG_API, "run")
             val nodes = Wearable.NodeApi.getConnectedNodes(mApiClient).await()
             for (node in nodes.nodes) {
-                Log.d(TAG_API, "sendMessage")
+                Log.d(TAG_API, "sendMessageToWear:$message")
                 Wearable.MessageApi
                         .sendMessage(mApiClient, node.id, "/data_comm", message.toByteArray())
             }
