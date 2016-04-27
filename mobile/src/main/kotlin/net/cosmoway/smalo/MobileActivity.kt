@@ -267,6 +267,7 @@ class MobileActivity : Activity(), View.OnClickListener {
     override fun onClick(v: View?) {
         if (v == mLockButton) {
             if (mState != null) {
+                animationEnd()
                 if (mState.equals("locked")) {
                     Log.d("Button", "unlocking")
                     val intent: Intent = Intent(this, MyService::class.java)
@@ -282,5 +283,4 @@ class MobileActivity : Activity(), View.OnClickListener {
             animationStart()
         }
     }
-
 }
