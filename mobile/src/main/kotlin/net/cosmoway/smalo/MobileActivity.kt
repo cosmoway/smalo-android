@@ -52,6 +52,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                         WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
         private val REQUEST_PERMISSION = 1
         private val TAG = "MainActivity"
+        private val MY_APP_NAME = "SMALO"
     }
 
     private fun animationStart() {
@@ -133,8 +134,8 @@ class MobileActivity : Activity(), View.OnClickListener {
             if (!pm.isIgnoringBatteryOptimizations(packageName)) {
                 AlertDialog.Builder(this)
                         .setTitle("確認")
-                        .setMessage("本アプリが正常に動作する為には、電池の最適化の解除が必要です。"
-                                + "\nなお、最適化状態時は、本アプリの動作に影響が発生します。")
+                        .setMessage(MY_APP_NAME + "が正常に動作する為には、電池の最適化の解除が必要です。\n" +
+                                "なお、最適化状態時は、" + MY_APP_NAME + "の動作に影響が発生します。")
                         .setPositiveButton("OK") { dialog, which ->
                             val intent = Intent(
                                     Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
@@ -151,7 +152,7 @@ class MobileActivity : Activity(), View.OnClickListener {
             AlertDialog.Builder(this)
                     .setTitle("確認")
                     .setMessage("通知音を鳴らすには、\n"
-                            + "本アプリに対する記憶装置へのアクセス許可発行が必要です。")
+                            + MY_APP_NAME + "に対する記憶装置へのアクセス許可発行が必要です。")
                     .setPositiveButton("OK") { dialog, which ->
                         ActivityCompat.requestPermissions(this,
                                 arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 0)
@@ -203,7 +204,8 @@ class MobileActivity : Activity(), View.OnClickListener {
         animationStart()
 
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(this, "BLE非対応端末です", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "この端末は、" + MY_APP_NAME + "に対応しておりません。",
+                    Toast.LENGTH_SHORT).show();
             finish();
         }
 

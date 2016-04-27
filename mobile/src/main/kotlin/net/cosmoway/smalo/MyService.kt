@@ -3,7 +3,6 @@ package net.cosmoway.smalo
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.media.Ringtone
 import android.media.RingtoneManager
@@ -49,7 +48,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     private var mApiClient: GoogleApiClient? = null
     private var mIsUnlocked: Boolean? = null
     private var mReceivedMessageFromWear: String? = null
-    private var mReceiver: MyBroadcastReceiver? = null
     private var mHashValue: String? = null
     // Nsd Manager
     private var mNsdManager: NsdManager? = null
@@ -68,8 +66,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         val MY_SERVICE_NAME = "smalo"
         //val MY_SERVICE_NAME = "smalo-dev"
         val MY_SERVICE_UUID = "51a4a738-62b8-4b26-a929-3bbac2a5ce7c"
-        //val MY_SERVICE_UUID = "dddddddddddddddddddddddddddddddd"
-        val MY_APP_NAME = "ＳＭＡＬＯ"
+        val MY_APP_NAME = "SMALO"
     }
 
     private fun toEncryptedHashValue(algorithmName: String, value: String): String {
@@ -114,16 +111,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
             override fun onPostExecute(result: String?) {
                 if (result != null) {
-                    makeNotification(result)
-                    if (result.equals("200 OK")) {
-                        sendBroadCast(result)
-                        val uri: Uri = RingtoneManager
-                                .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                        val ringtone: Ringtone = RingtoneManager
-                                .getRingtone(applicationContext, uri)
-                        ringtone.play()
-                        mIsUnlocked == true
-                    } else if (result.equals("locked") || result.equals("unlocked") || result.equals("unknown")) {
+                    if (result.equals("locked") || result.equals("unlocked") || result.equals("unknown")) {
                         sendBroadCast(result)
                         mState = result
                         sendDataByMessageApi(result)
@@ -131,6 +119,17 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                             //TODO:開処理リクエスト。
                             getRequest("http:/$mHost:10080/api/locks/unlocking/$mHashValue")
                         }
+                    } else {
+                        if (result.equals("200 OK")) {
+                            sendBroadCast(result)
+                            val uri: Uri = RingtoneManager
+                                    .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                            val ringtone: Ringtone = RingtoneManager
+                                    .getRingtone(applicationContext, uri)
+                            ringtone.play()
+                            mIsUnlocked == true
+                        }
+                        makeNotification(result)
                     }
                 }
             }
@@ -147,13 +146,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 notificationIntent, 0)
 
         builder.setContentTitle(title) // 1行目
-        if (title.equals("locked")) {
-            builder.setContentText("施錠されております。")
-        } else if (title.equals("unlocked")) {
-            builder.setContentText("解錠されております。")
-        } else if (title.equals("unknown")) {
-            builder.setContentText("鍵の状態が判りませんでした。")
-        } else if (title.equals("Connection Error")) {
+        if (title.equals("Connection Error")) {
             builder.setContentText("通信処理が正常に終了されませんでした。\n通信環境を御確認下さい。")
         } else if (title.indexOf("400") != -1) {
             builder.setContentText("予期せぬエラーが発生致しました。\n開発者に御問合せ下さい。")
@@ -173,7 +166,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     fun ensureSystemServices() {
-        mNsdManager = getSystemService(Service.NSD_SERVICE) as NsdManager
+        if (mNsdManager == null) {
+            mNsdManager = getSystemService(Service.NSD_SERVICE) as NsdManager
+        }
         /*if (nsdManager == null) {
             return
         }*/
@@ -266,7 +261,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             // 端末固有識別番号取得
             // mId = UUID.randomUUID().toString()
             // TODO:コミット対象外。
-            mId = "2df60388-e96e-4945-93d0-a4836ee75a3c"
+            mId = "2df60388-e96e-4945-93d0-a4836ee75a3c" //ando
+            //mId = "0648eb1d-e429-434a-a16d-12216b3f0701" //GS6
+            //mId = "d83d617a-e76c-4d33-ae99-0b6ea843129e" //N6
             sp?.edit()?.putString("saveId", mId)?.apply()
         }
         Log.d("id", mId)
@@ -290,7 +287,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         //mBeaconManager?.setForegroundScanPeriod(1000)
         mBeaconManager?.setForegroundBetweenScanPeriod(1000)
 
-        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag")
         mWakeLock?.acquire()
 
@@ -347,7 +344,8 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             e.printStackTrace()
         }
         mWakeLock?.release()
-        unregisterReceiver(mReceiver)
+        stopDiscovery()
+        mBeaconManager = null
     }
 
     //Beaconサービスの接続と開始
