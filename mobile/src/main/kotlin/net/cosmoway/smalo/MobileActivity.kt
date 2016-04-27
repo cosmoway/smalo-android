@@ -4,6 +4,8 @@ import android.Manifest
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
 import android.app.Activity
+import android.app.Notification
+import android.app.PendingIntent
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
@@ -14,8 +16,10 @@ import android.net.wifi.WifiManager
 import android.os.*
 import android.provider.Settings
 import android.support.v4.app.ActivityCompat
+import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
+import android.support.v7.app.NotificationCompat
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -79,6 +83,9 @@ class MobileActivity : Activity(), View.OnClickListener {
             val bundle = msg.data
             mState = bundle.getString("state")
             if (mState.equals("locked") || (mState.equals("200 OK") && mIsLocked == false)) {
+                if (mState.equals("200 OK") && mIsLocked == false) {
+                    makeNotification("施錠されました。")
+                }
                 mIsLocked = true
                 Log.d(TAG, "message:L")
                 setColor(R.drawable.bg_grad, R.drawable.oval)
@@ -88,6 +95,9 @@ class MobileActivity : Activity(), View.OnClickListener {
                 mLockButton?.isEnabled = true
                 mOval4?.visibility = View.VISIBLE
             } else if (mState.equals("unlocked") || (mState.equals("200 OK") && mIsLocked == true)) {
+                if (mState.equals("200 OK") && mIsLocked == true) {
+                    makeNotification("解錠されました。")
+                }
                 mIsLocked = false
                 Log.d(TAG, "message:UL")
                 setColor(R.drawable.bg_grad_unlocked, R.drawable.oval_unlocked)
@@ -115,6 +125,26 @@ class MobileActivity : Activity(), View.OnClickListener {
         mOval3?.setImageResource(oval)
         mOval4?.setImageResource(oval)
         mOval5?.setImageResource(oval)
+    }
+
+
+    private fun makeNotification(message: String) {
+        val builder = NotificationCompat.Builder(applicationContext)
+        builder.setSmallIcon(R.mipmap.smalo_icon)
+
+        // ノーティフィケションを生成した時のインテントを作成する
+        val notificationIntent = Intent(this, Notification::class.java)
+        val contentIntent = PendingIntent.getActivity(this, 0,
+                notificationIntent, 0)
+
+        builder.setContentTitle("200 OK") // 1行目
+        builder.setContentText(message)
+        builder.setContentIntent(contentIntent)
+        builder.setTicker(MyService.MY_APP_NAME) // 通知到着時に通知バーに表示(4.4まで)
+        // 5.0からは表示されない
+
+        val manager = NotificationManagerCompat.from(applicationContext)
+        manager.notify(1, builder.build())
     }
 
     private fun requestLocationPermission() {
