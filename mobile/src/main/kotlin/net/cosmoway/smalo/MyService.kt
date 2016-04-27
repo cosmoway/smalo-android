@@ -306,7 +306,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG_SERVICE, "Command Started")
-        val extra: String? = intent?.extras!!.getString("extra");
+        val extra: String? = intent?.extras?.getString("extra");
         if (extra.equals("start")) {
             mIsBackground = false
             //TODO:タイマースケジュール設定＆開始
