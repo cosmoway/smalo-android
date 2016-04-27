@@ -201,10 +201,6 @@ class MobileActivity : Activity(), View.OnClickListener {
         mLockButton?.isEnabled = false
     }
 
-    private fun setOnClickListeners() {
-        mLockButton?.setOnClickListener(this)
-    }
-
     private fun setAnimators() {
         mAnimatorSet1 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
         mAnimatorSet2 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
@@ -227,9 +223,10 @@ class MobileActivity : Activity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mobile)
         Log.d(TAG, "Created")
+        mState = "unknown"
 
         findViews()
-        setOnClickListeners()
+        mLockButton?.setOnClickListener(this)
         setAnimators()
         animationStart()
 
