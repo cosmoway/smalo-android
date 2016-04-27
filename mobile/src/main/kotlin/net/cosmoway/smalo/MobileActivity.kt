@@ -16,6 +16,7 @@ import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
@@ -27,6 +28,7 @@ class MobileActivity : Activity(), View.OnClickListener {
     private var mIntentFilter: IntentFilter? = null
     private var mLockButton: ImageButton? = null
     private var mIsLocked: Boolean? = null
+    private var mBackground: FrameLayout? = null
     private var mAnimatorSet1: AnimatorSet? = null
     private var mAnimatorSet2: AnimatorSet? = null
     private var mAnimatorSet3: AnimatorSet? = null
@@ -253,6 +255,7 @@ class MobileActivity : Activity(), View.OnClickListener {
             if (mState.equals("locked") || (mState.equals("200 OK") && mIsLocked == false)) {
                 mIsLocked = true
                 Log.d(TAG, "message:L")
+                setColor(R.drawable.bg_grad, R.drawable.oval)
                 mLockButton?.isClickable = true
                 animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_close_button)
@@ -261,6 +264,7 @@ class MobileActivity : Activity(), View.OnClickListener {
             } else if (mState.equals("unlocked") || (mState.equals("200 OK") && mIsLocked == true)) {
                 mIsLocked = false
                 Log.d(TAG, "message:UL")
+                setColor(R.drawable.bg_grad_unlocked, R.drawable.oval_unlocked)
                 mLockButton?.isClickable = true
                 animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_open_button)
@@ -268,6 +272,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                 mOval5?.visibility = View.VISIBLE
             } else if (mState.equals("unknown")) {
                 Log.d(TAG, "message:UK")
+                setColor(R.drawable.bg_grad, R.drawable.oval)
                 mLockButton?.isClickable = false
                 mLockButton?.setImageResource(R.drawable.smalo_search_icon)
                 mLockButton?.isEnabled = false
@@ -275,6 +280,15 @@ class MobileActivity : Activity(), View.OnClickListener {
                 mOval5?.visibility = View.GONE
             }
         }
+    }
+
+    private fun setColor(bg: Int, oval: Int) {
+        mBackground?.setBackgroundResource(bg)
+        mOval1?.setImageResource(oval)
+        mOval2?.setImageResource(oval)
+        mOval3?.setImageResource(oval)
+        mOval4?.setImageResource(oval)
+        mOval5?.setImageResource(oval)
     }
 
     private fun requestLocationPermission() {
@@ -321,6 +335,7 @@ class MobileActivity : Activity(), View.OnClickListener {
     }
 
     private fun findViews() {
+        mBackground = findViewById(R.id.layout_mobile) as FrameLayout
         mOval1 = findViewById(R.id.oval1) as ImageView
         mOval2 = findViewById(R.id.oval2) as ImageView
         mOval3 = findViewById(R.id.oval3) as ImageView
