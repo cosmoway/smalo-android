@@ -45,6 +45,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     // Wakelock
     private var mWakeLock: PowerManager.WakeLock? = null
 
+    private var mIsBackground: Boolean? = null
     private var mApiClient: GoogleApiClient? = null
     private var mIsUnlocked: Boolean? = null
     private var mReceivedMessageFromWear: String? = null
@@ -126,7 +127,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                         sendBroadCast(result)
                         mState = result
                         sendDataByMessageApi(result)
-                        if (result == "locked" && mIsUnlocked == false) {
+                        if (result == "locked" && mIsUnlocked == false && mIsBackground == true) {
                             //TODO:開処理リクエスト。
                             getRequest("http:/$mHost:10080/api/locks/unlocking/$mHashValue")
                         }
@@ -255,6 +256,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         super.onCreate()
         Log.d(TAG_SERVICE, "created")
         mIsUnlocked = false
+        mIsBackground = true
 
         // TODO:端末固有識別番号読出
         val sp = PreferenceManager.getDefaultSharedPreferences(this)
@@ -314,6 +316,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.d(TAG_SERVICE, "Command Started")
         val extra: String? = intent?.extras!!.getString("extra");
         if (extra.equals("start")) {
+            mIsBackground = false
             //TODO:タイマースケジュール設定＆開始
             try {
                 mTimer?.schedule(mTimerTask, 2000, 2000)
@@ -321,6 +324,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 e.printStackTrace()
             }
         } else if (extra.equals("stop")) {
+            mIsBackground = true
             //TODO:タイマーのキャンセル
             mTimer?.cancel()
         } else if (extra.equals("locking") || extra.equals("unlocking")) {
