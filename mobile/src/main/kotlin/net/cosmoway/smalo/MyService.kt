@@ -128,7 +128,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                             val ringtone: Ringtone = RingtoneManager
                                     .getRingtone(applicationContext, uri)
                             ringtone.play()
-                            mIsUnlocked == true
+                            mIsUnlocked = true
                         }
                         makeNotification(result)
                     }
@@ -167,9 +167,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     fun ensureSystemServices() {
-        if (mNsdManager == null) {
-            mNsdManager = getSystemService(Service.NSD_SERVICE) as NsdManager
-        }
+        mNsdManager = getSystemService(Service.NSD_SERVICE) as NsdManager
         /*if (nsdManager == null) {
             return
         }*/
@@ -186,8 +184,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     private inner class MyDiscoveryListener : NsdManager.DiscoveryListener {
         override fun onServiceFound(serviceInfo: NsdServiceInfo) {
             Log.i(TAG_NSD, String.format("Service found serviceInfo=%s", serviceInfo))
-            if (serviceInfo.serviceType.equals(SERVICE_TYPE) &&
-                    serviceInfo.serviceName == MY_SERVICE_NAME) {
+            if (serviceInfo.serviceType.equals(SERVICE_TYPE)) {
                 mNsdManager?.resolveService(serviceInfo, MyResolveListener())
             }
         }
@@ -260,11 +257,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         if (mId == null) {
             Log.d("id", "null")
             // 端末固有識別番号取得
-            // mId = UUID.randomUUID().toString()
-            // TODO:コミット対象外。
-            mId = "2df60388-e96e-4945-93d0-a4836ee75a3c" //ando
-            //mId = "0648eb1d-e429-434a-a16d-12216b3f0701" //GS6
-            //mId = "d83d617a-e76c-4d33-ae99-0b6ea843129e" //N6
+            mId = UUID.randomUUID().toString()
             sp?.edit()?.putString("saveId", mId)?.apply()
         }
         Log.d("id", mId)
@@ -305,6 +298,8 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         mTimer = Timer()
         //タスククラスインスタンス生成
         mTimerTask = MyTimerTask()
+
+        // TODO: 名前解決
         Log.d(TAG_SERVICE, "beforeEnsure")
         ensureSystemServices()
         Log.d(TAG_SERVICE, "ensured")
@@ -312,6 +307,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG_SERVICE, "Command Started")
+        // in foreground.
         val extra: String? = intent?.extras?.getString("extra");
         if (extra.equals("start")) {
             mIsBackground = false
@@ -321,6 +317,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             } catch(e: IllegalStateException) {
                 e.printStackTrace()
             }
+            // in background.
         } else if (extra.equals("stop")) {
             mIsBackground = true
             //TODO:タイマーのキャンセル
@@ -329,10 +326,12 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             getRequest("http:/$mHost:10080/api/locks/$extra/$mHashValue")
 
         }
+
         if (mHost == null) {
             startDiscovery()
         }
-        return START_STICKY;
+
+        return START_STICKY
     }
 
     override fun onDestroy() {
@@ -396,25 +395,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                     + ", Distance:" + beacon.distance + "m"
                     + ", RSSI:" + beacon.rssi + ", txPower:" + beacon.txPower)
 
-            // 距離種別
-            /*var proximity: String = "proximity"
-
-            if (beacon.distance < 0.0) {
-                proximity = "Unknown"
-
-            } else if (beacon.distance <= 0.5) {
-                proximity = "Immediate"
-
-            } else if (beacon.distance <= 3.0) {
-                proximity = "Near"
-
-            } else if (beacon.distance > 3.0) {
-                proximity = "Far"
-            }*/
-
             sendBroadcast(beacon.id2.toString(), beacon.id3.toString())
             val major: String = beacon.id2.toString()
             val minor: String = beacon.id3.toString()
+            Log.d(TAG_SERVICE, "Host:$mHost")
             if (mHost != null && beacon.distance != -1.0
                     && beacon.id1.toString() == MY_SERVICE_UUID) {
                 Log.d(TAG_SERVICE, "major:$major, minor:$minor")
@@ -442,7 +426,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         }).start()
     }
 
-    //ウェアからのメッセージを受け取った時に走る。
+    // TODO: ウェアからのメッセージを受け取った時。
     override fun onMessageReceived(messageEvents: MessageEvent?) {
         if (messageEvents?.path == "/data_comm2") {
             mReceivedMessageFromWear = String(messageEvents!!.data)
