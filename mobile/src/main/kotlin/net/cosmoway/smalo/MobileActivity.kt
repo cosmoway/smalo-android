@@ -7,10 +7,12 @@ import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.*
+import android.preference.PreferenceManager
 import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.NotificationManagerCompat
@@ -27,7 +29,16 @@ import android.widget.Toast
 
 class MobileActivity : Activity(), View.OnClickListener {
 
+    interface Callback {
+        fun onConnecting()
+
+        fun onUnLocking()
+
+        fun onLocking()
+    }
+
     private var mReceiver: MyBroadcastReceiver? = null
+    private var mCallback: Callback? = null
     private var mState: String? = null
     private var mIntentFilter: IntentFilter? = null
     private var mLockButton: ImageButton? = null
@@ -48,12 +59,17 @@ class MobileActivity : Activity(), View.OnClickListener {
         //スリープモードからの復帰の為のフラグ定数
         private val FLAG_KEYGUARD =
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
-                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
         private val REQUEST_PERMISSION = 1
         private val TAG = "MainActivity"
 
         private val MY_APP_NAME = "SMALO"
+        private val PREFERENCE_INIT = 0;
+        private val PREFERENCE_BOOTED = 1;
+    }
+
+    fun setCallback(callback: Callback) {
+        mCallback = callback
     }
 
     private fun animationStart() {
@@ -72,6 +88,23 @@ class MobileActivity : Activity(), View.OnClickListener {
         mAnimatorSet3?.end()
         mAnimatorSet4?.end()
         mAnimatorSet5?.end()
+    }
+
+    private fun setState(state: Int) {
+        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sp.edit().putInt("InitState", state).commit();
+        Log.d(TAG, state.toString());
+    }
+
+    //データ読み出し
+    private fun getState(): Int {
+        // 読み込み
+        val state: Int;
+        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        state = sp.getInt("InitState", PREFERENCE_INIT);
+        //ログ表示
+        Log.d(TAG, "state:$state");
+        return state;
     }
 
     //TODO: サービスからブロードキャストされ、値を受け取った時に動かしたい内容を書く。
@@ -220,7 +253,14 @@ class MobileActivity : Activity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mobile)
         Log.d(TAG, "Created")
+        if (getState() == PREFERENCE_INIT) {
+            setState(PREFERENCE_BOOTED);
+            val intent: Intent = Intent(this, RegisterActivity::class.java)
+            startActivity(intent)
+        }
         mState = "unknown"
+
+        //setCallback(MyService.this)
 
         findViews()
         mLockButton?.setOnClickListener(this)
@@ -267,6 +307,9 @@ class MobileActivity : Activity(), View.OnClickListener {
         val intent: Intent = Intent(this, MyService::class.java)
         intent.putExtra("extra", "start")
         startService(intent)
+        /*if (mCallback != null) {
+            (mCallback as Callback).onConnecting()
+        }*/
     }
 
     override fun onDestroy() {
@@ -294,15 +337,16 @@ class MobileActivity : Activity(), View.OnClickListener {
         if (v == mLockButton) {
             if (mState != null) {
                 animationEnd()
+                Log.d(TAG, mCallback.toString())
                 if (mState.equals("locked")) {
-                    Log.d("Button", "unlocking")
+                    //mCallback?.onUnLocking()
                     val intent: Intent = Intent(this, MyService::class.java)
-                    intent.putExtra("extra", "unlocking")
+                    intent.putExtra("extra", "unlock")
                     startService(intent)
                 } else if (mState.equals("unlocked")) {
-                    Log.d("Button", "locking")
+                    //mCallback?.onLocking()
                     val intent: Intent = Intent(this, MyService::class.java)
-                    intent.putExtra("extra", "locking")
+                    intent.putExtra("extra", "lock")
                     startService(intent)
                 }
             }
