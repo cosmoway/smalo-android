@@ -18,6 +18,8 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
         fun unlock()
 
         fun unknown()
+
+        fun connectionOpen()
     }
 
     private var mCallbacks: MyCallbacks? = null
@@ -28,6 +30,7 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
 
     override fun onOpen(handshakeData: ServerHandshake) {
         Log.i(TAG, "Connected")
+        mCallbacks?.connectionOpen()
     }
 
     override fun onMessage(message: String) {
@@ -46,9 +49,9 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
                 str = json.getString("state")
                 if (str != null) {
                     when (str) {
-                        "lock" -> mCallbacks!!.lock()
-                        "unlock" -> mCallbacks!!.unlock()
-                        "unknown" -> mCallbacks!!.unknown()
+                        "lock" -> mCallbacks?.lock()
+                        "unlock" -> mCallbacks?.unlock()
+                        "unknown" -> mCallbacks?.unknown()
                     }
                 }
             }
@@ -80,13 +83,12 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
         fun newInstance(): MyWebSocketClient {
             var uri: URI? = null
             try {
-                // TODO:サーバーURL変える。wss。
-                uri = URI("ws://furufuru-ball.herokuapp.com")
+                uri = URI("ws://smalo.herokuapp.com")
             } catch (e: URISyntaxException) {
                 e.printStackTrace()
             }
 
-            return MyWebSocketClient(uri)
+            return MyWebSocketClient(uri!!)
         }
     }
 }

@@ -27,11 +27,13 @@ import org.altbeacon.beacon.startup.RegionBootstrap
 import java.io.IOException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.*
 
 // BeaconServiceクラス
 class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
-        MonitorNotifier, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+        MonitorNotifier, MyWebSocketClient.MyCallbacks, MobileActivity.Callback,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+    private var mActivity: MobileActivity? = null
 
     // BGで監視するiBeacon領域
     private var mRegionBootstrap: RegionBootstrap? = null
@@ -43,6 +45,8 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     private var mState: String? = null
     // Wakelock
     private var mWakeLock: PowerManager.WakeLock? = null
+    // MyWebSocketClient
+    private var mWebSocketClient: MyWebSocketClient? = null
 
     private var mIsBackground: Boolean? = null
     private var mApiClient: GoogleApiClient? = null
@@ -52,9 +56,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     // Nsd Manager
     private var mNsdManager: NsdManager? = null
     // UUID設定用
-    private var mId: String? = null
-    private var mTimer: Timer? = null
-    private var mTimerTask: MyTimerTask? = null        //タイマタスククラス
+    private var mId: String? = null      //タイマタスククラス
     private var mHandler: Handler = Handler();   //UI Threadへのpost用ハンドラ
 
 
@@ -117,7 +119,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                         mState = result
                         if (result == "locked" && mIsUnlocked == false && mIsBackground == true) {
                             //TODO:開処理リクエスト。
-                            getRequest("http:/$mHost:10080/api/locks/unlocking/$mHashValue")
+                            //getRequest("http:/$mHost:10080/api/locks/unlocking/$mHashValue")
                         }
                     } else {
                         if (result.equals("200 OK")) {
@@ -136,6 +138,24 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             }
         }.execute()
     }
+
+    // TODO: 状態。
+    override fun lock() {
+        sendBroadCast("locked")
+    }
+
+    override fun unlock() {
+        sendBroadCast("unlocked")
+    }
+
+    override fun unknown() {
+        sendBroadCast("unknown")
+    }
+
+    override fun connectionOpen() {
+        sendJson("{\"uuid\":\"$mId\"}")
+    }
+
 
     private fun makeNotification(title: String) {
         val builder = NotificationCompat.Builder(applicationContext)
@@ -247,6 +267,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     override fun onCreate() {
         super.onCreate()
+        connectIfNeeded()
         Log.d(TAG_SERVICE, "created")
         mIsUnlocked = false
         mIsBackground = true
@@ -257,12 +278,18 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         if (mId == null) {
             Log.d("id", "null")
             // 端末固有識別番号取得
-            mId = UUID.randomUUID().toString()
+            // mId = UUID.randomUUID().toString()
+            mId = "2df60388-e96e-4945-93d0-a4836ee75a3c" //ando
+
             sp?.edit()?.putString("saveId", mId)?.apply()
         }
+
+        mActivity = MobileActivity()
+        mActivity?.setCallback(this)
         Log.d("id", mId)
+        //sendJson("{\"uuid\":\"$mId\"}")
         //BTMのインスタンス化
-        mBeaconManager = BeaconManager.getInstanceForApplication(this)
+        /*mBeaconManager = BeaconManager.getInstanceForApplication(this)
 
         //Parserの設定
         val IBEACON_FORMAT: String = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"
@@ -279,7 +306,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         mBeaconManager?.setBackgroundScanPeriod(3000)
         mBeaconManager?.setBackgroundBetweenScanPeriod(1000)
         mBeaconManager?.setForegroundScanPeriod(3000)
-        mBeaconManager?.setForegroundBetweenScanPeriod(1000)
+        mBeaconManager?.setForegroundBetweenScanPeriod(1000)*/
 
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag")
@@ -293,15 +320,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 .addOnConnectionFailedListener(this)
                 .build()
         mApiClient?.connect()
-        Log.d(TAG_SERVICE, "Created")
-        //タイマーインスタンス生成
-        mTimer = Timer()
-        //タスククラスインスタンス生成
-        mTimerTask = MyTimerTask()
 
         // TODO: 名前解決
         Log.d(TAG_SERVICE, "beforeEnsure")
-        ensureSystemServices()
+        //ensureSystemServices()
         Log.d(TAG_SERVICE, "ensured")
     }
 
@@ -309,26 +331,13 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.d(TAG_SERVICE, "Command Started")
         // in foreground.
         val extra: String? = intent?.extras?.getString("extra");
-        if (extra.equals("start")) {
-            mIsBackground = false
-            //TODO:タイマースケジュール設定＆開始
-            try {
-                mTimer?.schedule(mTimerTask, 2000, 2000)
-            } catch(e: IllegalStateException) {
-                e.printStackTrace()
-            }
-            // in background.
-        } else if (extra.equals("stop")) {
-            mIsBackground = true
-            //TODO:タイマーのキャンセル
-            mTimer?.cancel()
-        } else if (extra.equals("locking") || extra.equals("unlocking")) {
-            getRequest("http:/$mHost:10080/api/locks/$extra/$mHashValue")
-
+        if (extra.equals("lock") || extra.equals("unlock")) {
+            sendJson("{\"command\":\"$extra\"}")
+            //getRequest("http:/$mHost:10080/api/locks/$extra/$mHashValue")
         }
 
         if (mHost == null) {
-            startDiscovery()
+            //startDiscovery()
         }
 
         return START_STICKY
@@ -337,27 +346,28 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG_SERVICE, "destroy")
-        try {
+        /*try {
             // レンジング停止
             mBeaconManager?.stopRangingBeaconsInRegion(mRegion)
             mBeaconManager?.stopMonitoringBeaconsInRegion(mRegion)
         } catch (e: RemoteException) {
             e.printStackTrace()
         }
+        mBeaconManager = null*/
         mWakeLock?.release()
-        mBeaconManager = null
+        disconnect()
     }
 
     //Beaconサービスの接続と開始
     override fun onBeaconServiceConnect() {
         //領域監視の設定
-        mBeaconManager?.setMonitorNotifier(this)
+        /*mBeaconManager?.setMonitorNotifier(this)
         try {
             // ビーコン情報の監視を開始
             mBeaconManager?.startMonitoringBeaconsInRegion(mRegion)
         } catch (e: RemoteException) {
             e.printStackTrace()
-        }
+        }*/
     }
 
     // 領域進入
@@ -382,6 +392,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             Log.d(TAG_SERVICE, "Exit Region")
             mBeaconManager?.stopRangingBeaconsInRegion(region)
             makeNotification("Exit Region")
+            disconnect()
             mIsUnlocked = false
         } catch (e: RemoteException) {
             e.printStackTrace()
@@ -402,8 +413,12 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             if (mHost != null && beacon.distance != -1.0
                     && beacon.id1.toString() == MY_SERVICE_UUID) {
                 Log.d(TAG_SERVICE, "major:$major, minor:$minor")
-                mHashValue = toEncryptedHashValue("SHA-256", "$mId|$major|$minor")
-                getRequest("http:/$mHost:10080/api/locks/status/$mHashValue")
+                // TODO:解錠リクエスト
+                sendJson("{\"command\":\"unlock\"}")
+                /*mHashValue = toEncryptedHashValue("SHA-256", "$mId|$major|$minor")
+                getRequest("http:/$mHost:10080/api/locks/status/$mHashValue")*/
+            } else {
+                disconnect()
             }
         }
     }
@@ -433,7 +448,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             Log.d(TAG_SERVICE, "receivedMessage: $mReceivedMessageFromWear")
 
             //TODO: 取得した内容に応じ処理
-            // 問い合わせ要求時
+            // TODO:問い合わせ要求時
             if (mReceivedMessageFromWear.equals("getState")) {
                 //TODO: 鍵の情報の取得
                 Log.d(TAG_SERVICE, "getState")
@@ -444,18 +459,18 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                     sendBroadCast("unknown")
                     sendDataByMessageApi("unknown")
                 }
-                // 解錠施錠要求時
+                // TODO:解錠施錠要求時
             } else if (mReceivedMessageFromWear.equals("stateUpdate")) {
                 Log.d(TAG_API, "locking")
                 //TODO: 今のステートに応じて処理する。Wearに結果返すのは解錠施錠時。
                 if (mState.equals("locked")) {
                     //TODO:開処理リクエスト。
-                    getRequest("http:/$mHost:10080/api/locks/unlocking/$mHashValue")
                     Log.d("鍵", "あける");
+                    sendJson("{\"command\":\"unlock\"}")
                 } else if (mState.equals("unlocked")) {
                     //TODO:閉処理リクエスト。
-                    getRequest("http:/$mHost:10080/api/locks/locking/$mHashValue")
                     Log.d("鍵", "しめる");
+                    sendJson("{\"command\":\"lock\"}")
                 }
             } else {
                 Log.d("要求", "通ってない")
@@ -475,13 +490,44 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.d("Failed", "実行")
     }
 
-    // TODO:run()に定周期で処理したい内容を記述。
-    inner private class MyTimerTask : TimerTask() {
-        override fun run() {
-            mHandler.post {
-                if (mHost != null && mHashValue != null)
-                    getRequest("http:/$mHost:10080/api/locks/status/$mHashValue")
-            }
+    override fun onUnLocking() {
+        Log.d(TAG_API, "unlocking")
+        sendJson("{\"command\":\"unlock\"}")
+    }
+
+    override fun onLocking() {
+        Log.d(TAG_API, "unlocking")
+        sendJson("{\"command\":\"lock\"}")
+    }
+
+    override fun onConnecting() {
+        sendJson("{\"uuid\":\"$mId\"}")
+    }
+
+    private fun sendJson(json: String) {
+        Log.d(TAG_SERVICE, "sendJson")
+        connectIfNeeded()
+        Log.d(TAG_SERVICE, mWebSocketClient?.isOpen.toString())
+        if (mWebSocketClient?.isOpen as Boolean) {
+            mWebSocketClient?.send(json)
+        }
+    }
+
+    private fun connectIfNeeded() {
+        Log.d(TAG_SERVICE, "connectIfNeeded")
+        if (mWebSocketClient == null || (mWebSocketClient as MyWebSocketClient).isClosed) {
+            Log.d(TAG_SERVICE, "connect")
+            mWebSocketClient = MyWebSocketClient.newInstance()
+            mWebSocketClient?.setCallbacks(this@MyService)
+            mWebSocketClient?.connect()
+        }
+    }
+
+    private fun disconnect() {
+        Log.d(TAG_SERVICE, "disconnect")
+        if (mWebSocketClient != null) {
+            (mWebSocketClient as MyWebSocketClient).close()
+            mWebSocketClient = null
         }
     }
 }
