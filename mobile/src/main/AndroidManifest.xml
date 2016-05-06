@@ -42,6 +42,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".RegisterActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait" />
+
         <service
             android:name=".MyService"
             android:enabled="true">
