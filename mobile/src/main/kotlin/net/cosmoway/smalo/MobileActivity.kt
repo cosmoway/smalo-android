@@ -254,7 +254,16 @@ class MobileActivity : Activity(), View.OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_mobile)
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, "この端末は、" + MY_APP_NAME + "に対応しておりません。",
+                    Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+        val wifiManager: WifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+        if (wifiManager.isWifiEnabled == false) {
+            wifiManager.isWifiEnabled = true
+        }
         Log.d(TAG, "Created")
         when (getState()) {
             PREFERENCE_INIT -> {
@@ -263,6 +272,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                 startActivity(intent)
             }
             PREFERENCE_BOOTED -> {
+                setContentView(R.layout.activity_mobile)
                 mState = "unknown"
                 //setCallback(MyService.this)
                 findViews()
@@ -270,20 +280,9 @@ class MobileActivity : Activity(), View.OnClickListener {
                 setAnimators()
                 animationStart()
 
-                if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-                    Toast.makeText(this, "この端末は、" + MY_APP_NAME + "に対応しておりません。",
-                            Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-
                 requestLocationPermission()
                 requestAccessStoragePermission()
                 requestBatteryPermission()
-
-                val wifiManager: WifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
-                if (wifiManager.isWifiEnabled == false) {
-                    wifiManager.isWifiEnabled = true
-                }
 
                 val adapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
                 if (adapter.isEnabled == false) {
