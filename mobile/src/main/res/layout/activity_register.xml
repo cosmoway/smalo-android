@@ -36,8 +36,7 @@
             android:paddingStart="8dp"
             android:paddingTop="16dp"
             android:textColor="@android:color/white"
-            android:textColorHint="@android:color/white"
-            android:textSize="24dp" />
+            android:textColorHint="@android:color/white" />
 
         <Button
             android:id="@+id/button_register"
@@ -51,8 +50,7 @@
             android:paddingBottom="16dp"
             android:paddingTop="16dp"
             android:text="送信"
-            android:textColor="@android:color/white"
-            android:textSize="24dp" />
+            android:textColor="@android:color/white" />
     </LinearLayout>
 
 </LinearLayout>
