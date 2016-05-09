@@ -256,46 +256,48 @@ class MobileActivity : Activity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mobile)
         Log.d(TAG, "Created")
-        if (getState() == PREFERENCE_INIT) {
-            setState(PREFERENCE_BOOTED);
-            val intent: Intent = Intent(this, RegisterActivity::class.java)
-            startActivity(intent)
+        when (getState()) {
+            PREFERENCE_INIT -> {
+                setState(PREFERENCE_BOOTED);
+                val intent: Intent = Intent(this, RegisterActivity::class.java)
+                startActivity(intent)
+            }
+            PREFERENCE_BOOTED -> {
+                mState = "unknown"
+                //setCallback(MyService.this)
+                findViews()
+                mLockButton?.setOnClickListener(this)
+                setAnimators()
+                animationStart()
+
+                if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+                    Toast.makeText(this, "この端末は、" + MY_APP_NAME + "に対応しておりません。",
+                            Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+
+                requestLocationPermission()
+                requestAccessStoragePermission()
+                requestBatteryPermission()
+
+                val wifiManager: WifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+                if (wifiManager.isWifiEnabled == false) {
+                    wifiManager.isWifiEnabled = true
+                }
+
+                val adapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+                if (adapter.isEnabled == false) {
+                    adapter.enable()
+                }
+
+                mReceiver = MyBroadcastReceiver()
+                mIntentFilter = IntentFilter()
+                (mIntentFilter as IntentFilter).addAction("UPDATE_ACTION")
+                registerReceiver(mReceiver, mIntentFilter)
+
+                (mReceiver as MyBroadcastReceiver).registerHandler(updateHandler)
+            }
         }
-        mState = "unknown"
-
-        //setCallback(MyService.this)
-
-        findViews()
-        mLockButton?.setOnClickListener(this)
-        setAnimators()
-        animationStart()
-
-        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(this, "この端末は、" + MY_APP_NAME + "に対応しておりません。",
-                    Toast.LENGTH_SHORT).show();
-            finish();
-        }
-
-        requestLocationPermission()
-        requestAccessStoragePermission()
-        requestBatteryPermission()
-
-        val wifiManager: WifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
-        if (wifiManager.isWifiEnabled == false) {
-            wifiManager.isWifiEnabled = true
-        }
-
-        val adapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-        if (adapter.isEnabled == false) {
-            adapter.enable()
-        }
-
-        mReceiver = MyBroadcastReceiver()
-        mIntentFilter = IntentFilter()
-        (mIntentFilter as IntentFilter).addAction("UPDATE_ACTION")
-        registerReceiver(mReceiver, mIntentFilter)
-
-        (mReceiver as MyBroadcastReceiver).registerHandler(updateHandler)
     }
 
     override fun onStop() {
