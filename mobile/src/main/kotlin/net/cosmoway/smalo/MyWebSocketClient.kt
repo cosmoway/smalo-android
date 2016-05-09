@@ -83,7 +83,7 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
         fun newInstance(): MyWebSocketClient {
             var uri: URI? = null
             try {
-                uri = URI("ws://smalo.herokuapp.com")
+                uri = URI("ws://smalo.cosmoway.net")
             } catch (e: URISyntaxException) {
                 e.printStackTrace()
             }
