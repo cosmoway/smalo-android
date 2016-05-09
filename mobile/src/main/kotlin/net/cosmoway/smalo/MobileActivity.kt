@@ -265,42 +265,37 @@ class MobileActivity : Activity(), View.OnClickListener {
             wifiManager.isWifiEnabled = true
         }
         Log.d(TAG, "Created")
-        when (getState()) {
-            PREFERENCE_INIT -> {
-                setState(PREFERENCE_BOOTED);
-                val intent: Intent = Intent(this, RegisterActivity::class.java)
-                startActivity(intent)
+        if (getState() == PREFERENCE_BOOTED) {
+            setContentView(R.layout.activity_mobile)
+            mState = "unknown"
+            //setCallback(MyService.this)
+            findViews()
+            mLockButton?.setOnClickListener(this)
+            setAnimators()
+            animationStart()
+
+            requestLocationPermission()
+            requestAccessStoragePermission()
+            requestBatteryPermission()
+
+            val adapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+            if (adapter.isEnabled == false) {
+                adapter.enable()
             }
-            PREFERENCE_BOOTED -> {
-                setContentView(R.layout.activity_mobile)
-                mState = "unknown"
-                //setCallback(MyService.this)
-                findViews()
-                mLockButton?.setOnClickListener(this)
-                setAnimators()
-                animationStart()
 
-                requestLocationPermission()
-                requestAccessStoragePermission()
-                requestBatteryPermission()
+            mReceiver = MyBroadcastReceiver()
+            mIntentFilter = IntentFilter()
+            (mIntentFilter as IntentFilter).addAction("UPDATE_ACTION")
+            registerReceiver(mReceiver, mIntentFilter)
 
-                val adapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-                if (adapter.isEnabled == false) {
-                    adapter.enable()
-                }
+            (mReceiver as MyBroadcastReceiver).registerHandler(updateHandler)
 
-                mReceiver = MyBroadcastReceiver()
-                mIntentFilter = IntentFilter()
-                (mIntentFilter as IntentFilter).addAction("UPDATE_ACTION")
-                registerReceiver(mReceiver, mIntentFilter)
-
-                (mReceiver as MyBroadcastReceiver).registerHandler(updateHandler)
-            }
         }
     }
 
     override fun onStop() {
         super.onStop()
+        Log.d(TAG, "Stopped")
         window.clearFlags(FLAG_KEYGUARD)
     }
 
@@ -308,9 +303,18 @@ class MobileActivity : Activity(), View.OnClickListener {
         super.onResume()
         Log.d(TAG, "Resumed")
         window.addFlags(FLAG_KEYGUARD)
-        val intent: Intent = Intent(this, MyService::class.java)
-        intent.putExtra("extra", "start")
-        startService(intent)
+        when (getState()) {
+            PREFERENCE_INIT -> {
+                setState(PREFERENCE_BOOTED);
+                val intent: Intent = Intent(this, RegisterActivity::class.java)
+                startActivity(intent)
+            }
+            PREFERENCE_BOOTED -> {
+                val intent: Intent = Intent(this, MyService::class.java)
+                intent.putExtra("extra", "start")
+                startService(intent)
+            }
+        }
         /*if (mCallback != null) {
             (mCallback as Callback).onConnecting()
         }*/
