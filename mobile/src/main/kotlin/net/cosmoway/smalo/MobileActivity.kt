@@ -22,9 +22,9 @@ import android.support.v7.app.NotificationCompat
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
-import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
 
 class MobileActivity : Activity(), View.OnClickListener {
@@ -43,7 +43,7 @@ class MobileActivity : Activity(), View.OnClickListener {
     private var mIntentFilter: IntentFilter? = null
     private var mLockButton: ImageButton? = null
     private var mIsLocked: Boolean? = null
-    private var mBackground: FrameLayout? = null
+    private var mBackground: LinearLayout? = null
     private var mAnimatorSet1: AnimatorSet? = null
     private var mAnimatorSet2: AnimatorSet? = null
     private var mAnimatorSet3: AnimatorSet? = null
@@ -221,7 +221,7 @@ class MobileActivity : Activity(), View.OnClickListener {
     }
 
     private fun findViews() {
-        mBackground = findViewById(R.id.layout_mobile) as FrameLayout
+        mBackground = findViewById(R.id.layout_mobile) as LinearLayout
         mOval1 = findViewById(R.id.oval1) as ImageView
         mOval2 = findViewById(R.id.oval2) as ImageView
         mOval3 = findViewById(R.id.oval3) as ImageView
