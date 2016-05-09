@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- ボタンが押されていない＆フォーカスされていない場合 -->
+    <item android:state_focused="false" android:state_pressed="false">
+        <!-- shapeタグで形状を指定 rectangle：四角形 -->
+        <shape android:shape="rectangle">
+            <!-- solidタグで色指定 -->
+            <solid android:color="#8fffffff" />
+            <stroke android:width="2dp" android:color="@android:color/white" />
+            <!-- ボタンの角の半径 -->
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+</selector>
