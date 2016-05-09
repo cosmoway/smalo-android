@@ -118,7 +118,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                 }
                 mIsLocked = true
                 Log.d(TAG, "message:L")
-                setColor(R.drawable.bg_grad, R.drawable.oval)
+                setColor(R.drawable.bg_grad_main, R.drawable.oval)
                 mLockButton?.isClickable = true
                 animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_close_button)
@@ -138,7 +138,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                 mOval5?.visibility = View.VISIBLE
             } else if (mState.equals("unknown")) {
                 Log.d(TAG, "message:UK")
-                setColor(R.drawable.bg_grad, R.drawable.oval)
+                setColor(R.drawable.bg_grad_main, R.drawable.oval)
                 mLockButton?.isClickable = false
                 mLockButton?.setImageResource(R.drawable.smalo_search_icon)
                 mLockButton?.isEnabled = false
