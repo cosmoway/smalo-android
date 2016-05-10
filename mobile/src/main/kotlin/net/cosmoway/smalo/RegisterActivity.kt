@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.AsyncTask
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -41,11 +42,23 @@ class RegisterActivity : Activity(), View.OnClickListener {
             }
 
             override fun onPostExecute(result: String?) {
+                val layout: View = findViewById(R.id.layout_register)
                 if (result != null) {
+                    Log.d("RegisterActivity", result)
                     if (result.equals("200 OK")) {
+                        Snackbar.make(layout, "正常に登録されました。", Snackbar.LENGTH_SHORT).show()
                         val intent: Intent = Intent(this@RegisterActivity, MobileActivity::class.java)
                         startActivity(intent)
                         // mIsUnlocked = true
+                    } else if (result.equals("400")) {
+                        Snackbar.make(layout, "予期せぬエラーが発生致しました。\n開発者に御問合せ下さい。"
+                                , Snackbar.LENGTH_SHORT).show()
+                    } else if (result.equals("403")) {
+                        Snackbar.make(layout, "認証に失敗致しました。\nシステム管理者に登録を御確認下さい。"
+                                , Snackbar.LENGTH_SHORT).show()
+                    } else if (result.equals("Connection Error")) {
+                        Snackbar.make(layout, "通信処理が正常に終了されませんでした。\n通信環境を御確認下さい。"
+                                , Snackbar.LENGTH_SHORT).show()
                     }
                     // makeNotification(result)
                 }
