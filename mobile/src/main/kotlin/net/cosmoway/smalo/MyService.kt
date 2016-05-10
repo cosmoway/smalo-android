@@ -24,9 +24,12 @@ import okhttp3.Request
 import org.altbeacon.beacon.*
 import org.altbeacon.beacon.startup.BootstrapNotifier
 import org.altbeacon.beacon.startup.RegionBootstrap
+import org.java_websocket.client.DefaultSSLWebSocketClientFactory
 import java.io.IOException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.security.SecureRandom
+import javax.net.ssl.SSLContext
 
 // BeaconServiceクラス
 class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
@@ -447,7 +450,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             mReceivedMessageFromWear = String(messageEvents!!.data)
             Log.d(TAG_SERVICE, "receivedMessage: $mReceivedMessageFromWear")
 
-            //TODO: 取得した内容に応じ処理
+            // TODO: 取得した内容に応じ処理
             // TODO:問い合わせ要求時
             if (mReceivedMessageFromWear.equals("getState")) {
                 //TODO: 鍵の情報の取得
@@ -465,11 +468,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 //TODO: 今のステートに応じて処理する。Wearに結果返すのは解錠施錠時。
                 if (mState.equals("locked")) {
                     //TODO:開処理リクエスト。
-                    Log.d("鍵", "あける");
+                    Log.d(TAG_SERVICE, "unlocking");
                     sendJson("{\"command\":\"unlock\"}")
                 } else if (mState.equals("unlocked")) {
                     //TODO:閉処理リクエスト。
-                    Log.d("鍵", "しめる");
+                    Log.d(TAG_SERVICE, "locking");
                     sendJson("{\"command\":\"lock\"}")
                 }
             } else {
@@ -479,28 +482,29 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     override fun onConnected(bundle: Bundle?) {
-        Log.d("onConnected", "実行")
+        Log.d(TAG_API, "onConnected")
     }
 
     override fun onConnectionSuspended(i: Int) {
-        Log.d("Suspended", "実行")
+        Log.d(TAG_API, "Suspended")
     }
 
     override fun onConnectionFailed(connectionResult: ConnectionResult) {
-        Log.d("Failed", "実行")
+        Log.d(TAG_API, "Failed")
     }
 
     override fun onUnLocking() {
-        Log.d(TAG_API, "unlocking")
+        Log.d(TAG_SERVICE, "unlocking")
         sendJson("{\"command\":\"unlock\"}")
     }
 
     override fun onLocking() {
-        Log.d(TAG_API, "unlocking")
+        Log.d(TAG_SERVICE, "locking")
         sendJson("{\"command\":\"lock\"}")
     }
 
     override fun onConnecting() {
+        Log.d(TAG_SERVICE, "connecting")
         sendJson("{\"uuid\":\"$mId\"}")
     }
 
