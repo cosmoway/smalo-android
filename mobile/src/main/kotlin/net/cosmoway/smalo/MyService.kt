@@ -508,6 +508,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         if (mWebSocketClient == null || (mWebSocketClient as MyWebSocketClient).isClosed) {
             Log.d(TAG_SERVICE, "connect")
             mWebSocketClient = MyWebSocketClient.newInstance()
+            val sslContext = SSLContext.getInstance("TLS")
+            sslContext.init(null, null, SecureRandom());
+            mWebSocketClient?.setWebSocketFactory(DefaultSSLWebSocketClientFactory(sslContext))
+
             mWebSocketClient?.setCallbacks(this@MyService)
             mWebSocketClient?.connect()
         }
