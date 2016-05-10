@@ -1,12 +1,10 @@
 package net.cosmoway.smalo
 
 import android.util.Log
-
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import org.json.JSONException
 import org.json.JSONObject
-
 import java.net.URI
 import java.net.URISyntaxException
 
@@ -79,15 +77,14 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
 
         private val TAG = "MyWebSocketClient"
 
-
         fun newInstance(): MyWebSocketClient {
             var uri: URI? = null
             try {
-                uri = URI("ws://smalo.cosmoway.net")
+                //uri = URI("wss://echo.websocket.org")
+                uri = URI("wss://smalo.cosmoway.net:8443")
             } catch (e: URISyntaxException) {
                 e.printStackTrace()
             }
-
             return MyWebSocketClient(uri!!)
         }
     }
