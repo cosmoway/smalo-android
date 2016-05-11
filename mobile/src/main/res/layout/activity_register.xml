@@ -1,62 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/layout_register"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_grad_register"
+    android:orientation="vertical">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="64dp"
+        android:paddingEnd="128dp"
+        android:paddingStart="128dp"
+        android:src="@drawable/smalo_title" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/bg_grad_register"
+        android:gravity="center"
+        android:layout_marginTop="-64dp"
         android:orientation="vertical">
 
-        <ImageView
+        <EditText
+            android:id="@+id/editText_name"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="-64dp"
-            android:layout_weight="1"
-            android:paddingEnd="128dp"
-            android:paddingStart="128dp"
-            android:src="@drawable/smalo_title" />
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="32dp"
+            android:layout_marginStart="32dp"
+            android:background="@drawable/bg_edittext"
+            android:hint="名前を入れてください。"
+            android:paddingBottom="16dp"
+            android:paddingStart="8dp"
+            android:paddingTop="16dp"
+            android:textColor="@android:color/white"
+            android:textColorHint="@android:color/white" />
 
-        <LinearLayout
+        <Button
+            android:id="@+id/button_register"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingTop="32dp">
-
-            <EditText
-                android:id="@+id/editText_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginEnd="32dp"
-                android:layout_marginStart="32dp"
-                android:background="@drawable/bg_edittext"
-                android:gravity="center_vertical"
-                android:hint="ユーザーネーム"
-                android:paddingBottom="16dp"
-                android:paddingStart="8dp"
-                android:paddingTop="16dp"
-                android:textColor="@android:color/white"
-                android:textColorHint="@android:color/white" />
-
-            <Button
-                android:id="@+id/button_register"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginEnd="32dp"
-                android:layout_marginStart="32dp"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/start_main"
-                android:paddingBottom="16dp"
-                android:paddingTop="16dp"
-                android:text="送信"
-                android:textColor="@android:color/white" />
-        </LinearLayout>
-
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="32dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/start_main"
+            android:paddingBottom="16dp"
+            android:paddingTop="16dp"
+            android:text="送信"
+            android:textColor="@android:color/white" />
     </LinearLayout>
-</android.support.design.widget.CoordinatorLayout>
+
+</LinearLayout>

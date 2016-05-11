@@ -49,6 +49,7 @@ class MobileActivity : Activity(), View.OnClickListener {
     private var mAnimatorSet3: AnimatorSet? = null
     private var mAnimatorSet4: AnimatorSet? = null
     private var mAnimatorSet5: AnimatorSet? = null
+    private var mAnimatorSet6: AnimatorSet? = null
     private var mOval1: ImageView? = null
     private var mOval2: ImageView? = null
     private var mOval3: ImageView? = null
@@ -79,6 +80,11 @@ class MobileActivity : Activity(), View.OnClickListener {
         mAnimatorSet3?.start()
         mAnimatorSet4?.start()
         mAnimatorSet5?.start()
+    }
+
+    private fun buttonAnimationStart() {
+        Log.d(TAG, "animStart")
+        mAnimatorSet6?.start()
     }
 
     private fun animationEnd() {
@@ -232,16 +238,18 @@ class MobileActivity : Activity(), View.OnClickListener {
     }
 
     private fun setAnimators() {
-        mAnimatorSet1 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
-        mAnimatorSet2 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
-        mAnimatorSet3 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
-        mAnimatorSet4 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
-        mAnimatorSet5 = AnimatorInflater.loadAnimator(this, R.animator.anim_oval) as AnimatorSet;
+        mAnimatorSet1 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet;
+        mAnimatorSet2 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet;
+        mAnimatorSet3 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet;
+        mAnimatorSet4 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet;
+        mAnimatorSet5 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet;
+        mAnimatorSet6 = AnimatorInflater.loadAnimator(this, R.animator.anim_ontap_button) as AnimatorSet;
         (mAnimatorSet1 as AnimatorSet).setTarget(mOval1);
         (mAnimatorSet2 as AnimatorSet).setTarget(mOval2);
         (mAnimatorSet3 as AnimatorSet).setTarget(mOval3);
         (mAnimatorSet4 as AnimatorSet).setTarget(mOval4);
         (mAnimatorSet5 as AnimatorSet).setTarget(mOval5);
+        (mAnimatorSet6 as AnimatorSet).setTarget(mOval1);
         (mAnimatorSet1 as AnimatorSet).startDelay = 0;
         (mAnimatorSet2 as AnimatorSet).startDelay = 800;
         (mAnimatorSet3 as AnimatorSet).startDelay = 1600;
@@ -321,21 +329,21 @@ class MobileActivity : Activity(), View.OnClickListener {
         super.onDestroy()
         Log.d(TAG, "Destroyed")
         unregisterReceiver(mReceiver)
-        if (mAnimatorSet1 != null) {
-            mAnimatorSet1?.end()
-            mAnimatorSet1 = null
-        }
-        if (mAnimatorSet2 != null) {
-            mAnimatorSet2?.end()
-            mAnimatorSet2 = null
-        }
-        if (mAnimatorSet3 != null) {
-            mAnimatorSet3?.end()
-            mAnimatorSet3 = null
-        }
         val intent: Intent = Intent(this, MyService::class.java)
         intent.putExtra("extra", "stop")
         startService(intent)
+        mAnimatorSet1?.end()
+        mAnimatorSet1 = null
+        mAnimatorSet2?.end()
+        mAnimatorSet2 = null
+        mAnimatorSet3?.end()
+        mAnimatorSet3 = null
+        mAnimatorSet4?.end()
+        mAnimatorSet4 = null
+        mAnimatorSet5?.end()
+        mAnimatorSet5 = null
+        mAnimatorSet6?.end()
+        mAnimatorSet6 = null
     }
 
     override fun onClick(v: View?) {
@@ -355,7 +363,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                     startService(intent)
                 }
             }
-            animationStart()
+            buttonAnimationStart()
         }
     }
 }
