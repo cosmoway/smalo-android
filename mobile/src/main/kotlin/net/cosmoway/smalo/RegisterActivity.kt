@@ -2,7 +2,6 @@ package net.cosmoway.smalo
 
 import android.content.Intent
 import android.graphics.Color
-import android.net.nsd.NsdManager
 import android.os.AsyncTask
 import android.os.Bundle
 import android.preference.PreferenceManager
@@ -19,10 +18,6 @@ import java.util.*
 
 class RegisterActivity : AppCompatActivity(), View.OnClickListener {
 
-    // Nsd Manager.
-    private var mNsdManager: NsdManager? = null
-    // Name of Host.
-    private var mHost: String? = null
     // My UUID.
     private var mId: String? = null
     // UI.
@@ -34,7 +29,7 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
         private val MY_SERVICE_NAME = "smalo"
         private val URL = "https://smalo.cosmoway.net:8443/api/v1/devices"
         private val TYPE = MediaType.parse("application/json; charset=utf-8")
-        //val MY_SERVICE_NAME = "smalo-dev"
+        //private val MY_SERVICE_NAME = "smalo-dev"
     }
 
     private fun showSnackBar(msg: String) {
@@ -70,7 +65,6 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
                 // リクエストして結果を受け取って
                 try {
                     val response = client.newCall(request).execute()
-                    //result = response.body().string()
                     result = response.code().toString()
                 } catch (e: IOException) {
                     e.printStackTrace()
@@ -88,17 +82,17 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
                         showSnackBar("正常に登録されました。")
                         val intent: Intent = Intent(this@RegisterActivity, MobileActivity::class.java)
                         intent.putExtra("bootState", 1)
+                        intent.putExtra("uuid", mId)
                         startActivity(intent)
-                        finish()
-                        // mIsUnlocked = true
                     } else if (result.equals("400")) {
                         showSnackBar("予期せぬエラーが発生致しました。\n開発者に御問合せ下さい。")
-                    } else if (result.equals("403")) {
-                        showSnackBar("認証に失敗致しました。\nシステム管理者に登録を御確認下さい。")
+                    } else if (result.equals("404")) {
+                        showSnackBar("サーバーが見つかりませんでした。\n開発者に御問合せ下さい。")
+                    } else if (result.equals("500")) {
+                        showSnackBar("サーバー内部でエラーが発生致しました。\n開発者に御問合せ下さい。")
                     } else if (result.equals("Connection Error")) {
                         showSnackBar("通信処理が正常に終了されませんでした。\n通信環境を御確認下さい。")
                     }
-                    // makeNotification(result)
                 }
             }
         }.execute()
@@ -135,11 +129,6 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
 
             if (mId != null && mEditText?.text.toString() != "") {
                 getRequest(URL, json)
-                /*val intent: Intent = Intent(this, MobileActivity::class.java)
-                startActivity(intent)*/
-
-            } else if (mEditText?.text.toString() == "") {
-                showSnackBar("名前を入力して下さい。")
             }
         }
     }

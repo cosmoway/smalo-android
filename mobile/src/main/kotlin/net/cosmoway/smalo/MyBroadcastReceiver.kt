@@ -14,6 +14,12 @@ class MyBroadcastReceiver : BroadcastReceiver() {
 
         val bundle = intent.extras
         val state = bundle.getString("state")
+        if (state == "okki") {
+            val i = Intent(context, MobileActivity::class.java)
+            i.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            i.putExtra("KEY", "str")
+            context.startActivity(i)
+        }
 
         if (sHandler != null) {
             val msg = Message()

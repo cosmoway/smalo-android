@@ -4,6 +4,7 @@ import android.Manifest
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
 import android.app.Activity
+import android.app.KeyguardManager
 import android.app.Notification
 import android.app.PendingIntent
 import android.bluetooth.BluetoothAdapter
@@ -12,8 +13,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.media.Ringtone
+import android.media.RingtoneManager
 import android.net.Uri
-import android.net.wifi.WifiManager
 import android.os.*
 import android.preference.PreferenceManager
 import android.provider.Settings
@@ -64,7 +66,8 @@ class MobileActivity : Activity(), View.OnClickListener {
         //スリープモードからの復帰の為のフラグ定数
         private val FLAG_KEYGUARD =
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
+                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
         private val REQUEST_PERMISSION = 1
         private val TAG = "MainActivity"
         private val MY_APP_NAME = "SMALO"
@@ -105,6 +108,12 @@ class MobileActivity : Activity(), View.OnClickListener {
         Log.d(TAG, state.toString());
     }
 
+    private fun setId(uuid: String) {
+        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sp.edit().putString("uuid", uuid).commit();
+        Log.d(TAG, uuid);
+    }
+
     //データ読み出し
     private fun getState(): Int {
         // 読み込み
@@ -114,6 +123,17 @@ class MobileActivity : Activity(), View.OnClickListener {
         //ログ表示
         Log.d(TAG, "state:$state");
         return state;
+    }
+
+    //データ読み出し
+    private fun getId(): String {
+        // 読み込み
+        val uuid: String;
+        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        uuid = sp.getString("uuid", null);
+        //ログ表示
+        Log.d(TAG, "UUID:$uuid");
+        return uuid;
     }
 
     //TODO: サービスからブロードキャストされ、値を受け取った時に動かしたい内容を書く。
@@ -179,7 +199,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         builder.setContentTitle("200 OK") // 1行目
         builder.setContentText(message)
         builder.setContentIntent(contentIntent)
-        builder.setTicker(MyService.MY_APP_NAME) // 通知到着時に通知バーに表示(4.4まで)
+        builder.setTicker(MY_APP_NAME) // 通知到着時に通知バーに表示(4.4まで)
         // 5.0からは表示されない
 
         val manager = NotificationManagerCompat.from(applicationContext)
@@ -267,12 +287,17 @@ class MobileActivity : Activity(), View.OnClickListener {
                     Toast.LENGTH_SHORT).show();
             finish();
         }
-
-        val wifiManager: WifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
-        if (wifiManager.isWifiEnabled == false) {
-            wifiManager.isWifiEnabled = true
-        }
+        mReceiver = MyBroadcastReceiver()
+        mIntentFilter = IntentFilter()
+        (mIntentFilter as IntentFilter).addAction("UPDATE_ACTION")
+        registerReceiver(mReceiver, mIntentFilter)
+        mReceiver?.registerHandler(updateHandler)
         Log.d(TAG, "Created")
+        val state: Int? = intent?.getIntExtra("bootState", 0)
+        if (state == PREFERENCE_BOOTED) {
+            setState(state)
+        }
+        Log.d(TAG, "State:${getState()}")
         if (getState() == PREFERENCE_BOOTED) {
             setContentView(R.layout.activity_mobile)
             mState = "unknown"
@@ -290,51 +315,79 @@ class MobileActivity : Activity(), View.OnClickListener {
             if (adapter.isEnabled == false) {
                 adapter.enable()
             }
-
-            mReceiver = MyBroadcastReceiver()
-            mIntentFilter = IntentFilter()
-            (mIntentFilter as IntentFilter).addAction("UPDATE_ACTION")
-            registerReceiver(mReceiver, mIntentFilter)
-
-            (mReceiver as MyBroadcastReceiver).registerHandler(updateHandler)
-
         }
     }
 
     override fun onStop() {
         super.onStop()
         Log.d(TAG, "Stopped")
-        window.clearFlags(FLAG_KEYGUARD)
+        //window.clearFlags(FLAG_KEYGUARD)
+        if (getState() == PREFERENCE_BOOTED) {
+            val intent: Intent = Intent(this, MyService::class.java)
+            intent.putExtra("extra", "stop")
+            startService(intent)
+        }
     }
 
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "Resumed")
-        window.addFlags(FLAG_KEYGUARD)
+        val km: KeyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+        val kl: KeyguardManager.KeyguardLock = km.newKeyguardLock("Your App Tag");
+        kl.disableKeyguard();
+        val pm = getSystemService(POWER_SERVICE) as PowerManager
+        val screenLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "Your App Tag")
+        screenLock.acquire(1000)
+        //window.addFlags(FLAG_KEYGUARD)
+        Log.d(TAG, getState().toString())
         when (getState()) {
             PREFERENCE_INIT -> {
-                setState(PREFERENCE_BOOTED);
                 val intent: Intent = Intent(this, RegisterActivity::class.java)
                 startActivity(intent)
+                return
             }
             PREFERENCE_BOOTED -> {
+                if (intent.getStringExtra("uuid") != null) {
+                    val uuid: String = intent.extras.getString("uuid")
+                    if (!uuid.isNullOrEmpty()) {
+                        setId(uuid)
+                    }
+                }
                 val intent: Intent = Intent(this, MyService::class.java)
                 intent.putExtra("extra", "start")
+                if (!getId().isNullOrEmpty()) {
+                    intent.putExtra("uuid", getId())
+                }
                 startService(intent)
             }
         }
-        /*if (mCallback != null) {
-            (mCallback as Callback).onConnecting()
-        }*/
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        Log.d(TAG, "OnNewIntent")
+        if (intent != null) {
+            val value = intent.getStringExtra("KEY")//設定したkeyで取り出す
+            if (value == "str") {
+                val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+                val screenLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG")
+                screenLock.acquire(1000)
+
+                val uri: Uri = RingtoneManager
+                        .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                val ringtone: Ringtone = RingtoneManager
+                        .getRingtone(this, uri)
+                ringtone.play()
+                val vib: Vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                vib.vibrate(2000)
+            }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "Destroyed")
         unregisterReceiver(mReceiver)
-        val intent: Intent = Intent(this, MyService::class.java)
-        intent.putExtra("extra", "stop")
-        startService(intent)
         mAnimatorSet1?.end()
         mAnimatorSet1 = null
         mAnimatorSet2?.end()
@@ -355,12 +408,10 @@ class MobileActivity : Activity(), View.OnClickListener {
                 animationEnd()
                 Log.d(TAG, mCallback.toString())
                 if (mState.equals("locked")) {
-                    //mCallback?.onUnLocking()
                     val intent: Intent = Intent(this, MyService::class.java)
                     intent.putExtra("extra", "unlock")
                     startService(intent)
                 } else if (mState.equals("unlocked")) {
-                    //mCallback?.onLocking()
                     val intent: Intent = Intent(this, MyService::class.java)
                     intent.putExtra("extra", "lock")
                     startService(intent)

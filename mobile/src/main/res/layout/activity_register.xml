@@ -29,7 +29,7 @@
             android:layout_marginEnd="32dp"
             android:layout_marginStart="32dp"
             android:background="@drawable/bg_edittext"
-            android:hint="名前を入れてください。"
+            android:hint="名前を入力して下さい。"
             android:paddingBottom="16dp"
             android:paddingStart="8dp"
             android:paddingTop="16dp"
