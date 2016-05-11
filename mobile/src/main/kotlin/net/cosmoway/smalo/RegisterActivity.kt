@@ -1,6 +1,5 @@
 package net.cosmoway.smalo
 
-import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.net.nsd.NsdManager
@@ -8,6 +7,7 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -17,7 +17,7 @@ import okhttp3.*
 import java.io.IOException
 import java.util.*
 
-class RegisterActivity : Activity(), View.OnClickListener {
+class RegisterActivity : AppCompatActivity(), View.OnClickListener {
 
     // Nsd Manager.
     private var mNsdManager: NsdManager? = null
@@ -38,7 +38,7 @@ class RegisterActivity : Activity(), View.OnClickListener {
     }
 
     private fun showSnackBar(msg: String) {
-        val layout: View = findViewById(R.id.layout_register)
+        val layout: View = findViewById(R.id.layout_register) as View
         val snackBar: Snackbar = Snackbar.make(layout, msg, Snackbar.LENGTH_SHORT);
         val textView: TextView = snackBar.view.findViewById(android.support.design.R.id.snackbar_text) as TextView
         textView.setTextColor(Color.WHITE);
@@ -139,7 +139,7 @@ class RegisterActivity : Activity(), View.OnClickListener {
                 startActivity(intent)*/
 
             } else if (mEditText?.text.toString() == "") {
-                showSnackBar("ユーザーネームを入力して下さい。")
+                showSnackBar("名前を入力して下さい。")
             }
         }
     }
