@@ -18,6 +18,8 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
         fun unknown()
 
         fun connectionOpen()
+
+        fun error()
     }
 
     private var mCallbacks: MyCallbacks? = null
@@ -65,6 +67,7 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
 
     override fun onError(ex: Exception) {
         Log.w(TAG, "Connection failed:" + ex.message)
+        mCallbacks?.error()
     }
 
     val isOpen: Boolean

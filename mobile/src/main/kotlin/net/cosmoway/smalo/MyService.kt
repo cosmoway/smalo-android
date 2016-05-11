@@ -258,20 +258,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         baseContext.sendBroadcast(broadcastIntent)
     }
 
-    // TODO:MM値
-    private fun sendBroadcast(major: String, minor: String) {
-        Log.d(TAG_SERVICE, "sendBroadcast")
-        val broadcastIntent: Intent = Intent()
-        broadcastIntent.putExtra("major", major)
-        broadcastIntent.putExtra("minor", minor)
-        broadcastIntent.action = "UPDATE_ACTION"
-        baseContext.sendBroadcast(broadcastIntent)
-    }
-
     override fun onCreate() {
         super.onCreate()
-        connectIfNeeded()
         Log.d(TAG_SERVICE, "created")
+        connectIfNeeded()
         mIsUnlocked = false
         mIsBackground = true
 
@@ -506,6 +496,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun onConnecting() {
         Log.d(TAG_SERVICE, "connecting")
         sendJson("{\"uuid\":\"$mId\"}")
+    }
+
+    override fun error() {
+        Log.d(TAG_SERVICE, "error")
+        connectIfNeeded()
     }
 
     private fun sendJson(json: String) {
