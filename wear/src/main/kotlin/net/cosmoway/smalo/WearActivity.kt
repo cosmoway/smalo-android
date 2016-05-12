@@ -20,7 +20,6 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
     private var mButton: ImageButton? = null
     private var mMessage: String? = null
     private var mState = "unknown"
-    private var mIsLocked: Boolean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,15 +103,12 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
     override fun onMessageReceived(messageEvents: MessageEvent) {
         if (messageEvents.path == "/data_comm") {
             runOnUiThread {
-                Log.d(TAG, "stateReceived:$mIsLocked")
                 mMessage = String(messageEvents.data)
                 mState = mMessage as String
-                if (mMessage.equals("locked") || (mIsLocked == false && mMessage.equals("200 OK"))) {
-                    mIsLocked = true
+                if (mMessage.equals("locked")) {
                     mButton!!.isClickable = true
                     mButton!!.setImageResource(R.drawable.smalo_close_button)
-                } else if (mMessage.equals("unlocked") || (mIsLocked == true && mMessage.equals("200 OK"))) {
-                    mIsLocked = false
+                } else if (mMessage.equals("unlocked")) {
                     mButton!!.isClickable = true
                     mButton!!.setImageResource(R.drawable.smalo_open_button)
                 } else if (mMessage.equals("unknown")) {
