@@ -120,8 +120,8 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
             if (mId == null) {
                 Log.d("id", "null")
                 // 端末固有識別番号取得
-                // mId = UUID.randomUUID().toString()
-                mId = "2df60388-e96e-4945-93d0-a4836ee75a3c" //ando test
+                mId = UUID.randomUUID().toString()
+                // mId = "2df60388-e96e-4945-93d0-a4836ee75a3c" //ando test
                 sp?.edit()?.putString("saveId", mId)?.apply()
             }
             Log.d("id", mId)
