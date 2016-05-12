@@ -144,7 +144,6 @@ class MobileActivity : Activity(), View.OnClickListener {
                 animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_close_button)
                 mLockButton?.isEnabled = true
-                mOval4?.visibility = View.VISIBLE
             } else if (mState.equals("unlocked") || (mState.equals("200 OK") && mIsLocked == true)) {
                 if (mState.equals("200 OK") && mIsLocked == true) {
                     makeNotification("解錠されました。")
@@ -156,15 +155,13 @@ class MobileActivity : Activity(), View.OnClickListener {
                 animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_open_button)
                 mLockButton?.isEnabled = true
-                mOval5?.visibility = View.VISIBLE
             } else if (mState.equals("unknown")) {
                 Log.d(TAG, "message:UK")
                 setColor(R.drawable.bg_grad_main, R.drawable.oval)
                 mLockButton?.isClickable = false
                 mLockButton?.setImageResource(R.drawable.smalo_search_icon)
                 mLockButton?.isEnabled = false
-                mOval4?.visibility = View.GONE
-                mOval5?.visibility = View.GONE
+                animationStart()
             }
         }
     }
