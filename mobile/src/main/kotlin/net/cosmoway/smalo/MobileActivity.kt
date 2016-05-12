@@ -4,7 +4,6 @@ import android.app.Activity
 import android.app.Notification
 import android.app.PendingIntent
 import android.bluetooth.BluetoothAdapter
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
@@ -189,7 +188,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         val contentIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0)
 
-        builder.setContentTitle("200 OK") // 1行目
+        builder.setContentTitle(MY_APP_NAME) // 1行目
         builder.setContentText(message)
         builder.setContentIntent(contentIntent)
         builder.setTicker(MY_APP_NAME) // 通知到着時に通知バーに表示(4.4まで)
@@ -325,12 +324,12 @@ class MobileActivity : Activity(), View.OnClickListener {
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "Resumed")
-        val km: KeyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+        /*val km: KeyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
         val kl: KeyguardManager.KeyguardLock = km.newKeyguardLock("Your App Tag");
         kl.disableKeyguard();
         val pm = getSystemService(POWER_SERVICE) as PowerManager
         val screenLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "Your App Tag")
-        screenLock.acquire(1000)
+        screenLock.acquire(1000)*/
         //window.addFlags(FLAG_KEYGUARD)
         Log.d(TAG, getState().toString())
         when (getState()) {
