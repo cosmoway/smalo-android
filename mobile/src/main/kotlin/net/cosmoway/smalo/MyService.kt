@@ -257,7 +257,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             makeNotification("Exit Region")
             if (mIsBackground == true) {
                 disconnect()
-                mIsUnlocked = false
+                mIsUnlocked = null
             }
         } catch (e: RemoteException) {
             e.printStackTrace()
