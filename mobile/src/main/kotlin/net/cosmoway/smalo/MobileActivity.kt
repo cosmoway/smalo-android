@@ -13,7 +13,6 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.net.wifi.WifiManager
 import android.os.*
 import android.preference.PreferenceManager
 import android.provider.Settings
@@ -283,11 +282,6 @@ class MobileActivity : Activity(), View.OnClickListener {
             Toast.makeText(this, "この端末は、" + MY_APP_NAME + "に対応しておりません。",
                     Toast.LENGTH_SHORT).show();
             finish();
-        }
-
-        val wifiManager: WifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
-        if (wifiManager.isWifiEnabled == false) {
-            wifiManager.isWifiEnabled = true
         }
         mReceiver = MyBroadcastReceiver()
         mIntentFilter = IntentFilter()
