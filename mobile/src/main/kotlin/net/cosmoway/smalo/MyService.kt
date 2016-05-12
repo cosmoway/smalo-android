@@ -69,6 +69,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         mIsUnlocked = true
         mState = "unlocked"
         sendBroadCast("unlocked")
+        if (mIsBackground == true) {
+            disconnect()
+        }
     }
 
     override fun unknown() {
@@ -152,11 +155,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 .addOnConnectionFailedListener(this)
                 .build()
         mApiClient?.connect()
-
-        // TODO: 名前解決
-        Log.d(TAG_SERVICE, "beforeEnsure")
-        //ensureSystemServices()
-        Log.d(TAG_SERVICE, "ensured")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -277,7 +275,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 Log.d(TAG_SERVICE, "major:$major, minor:$minor")
                 // TODO:解錠リクエスト
                 sendJson("{\"command\":\"unlock\"}")
-                mIsBackground = false
             }
         }
     }
