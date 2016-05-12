@@ -339,7 +339,7 @@ class MobileActivity : Activity(), View.OnClickListener {
             PREFERENCE_INIT -> {
                 val intent: Intent = Intent(this, RegisterActivity::class.java)
                 startActivity(intent)
-                return
+                finish()
             }
             PREFERENCE_BOOTED -> {
                 if (intent.getStringExtra("uuid") != null) {
