@@ -180,6 +180,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             //startDiscovery()
         }
 
+        val notification: Notification = Notification();
+        notification.iconLevel = 0;
+        startForeground(1, notification);
         return START_STICKY
     }
 
@@ -196,6 +199,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         mBeaconManager = null
         mWakeLock?.release()
         disconnect()
+        stopForeground(true)
     }
     //Beaconサービスの接続と開始
     override fun onBeaconServiceConnect() {
