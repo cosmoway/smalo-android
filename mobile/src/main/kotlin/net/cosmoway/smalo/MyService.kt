@@ -322,6 +322,12 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG_SERVICE, "Command Started")
+
+        // TODO:端末固有識別番号読出
+        if (intent?.extras?.getString("uuid") != null) {
+            mId = intent?.extras?.getString("uuid")
+            Log.d(TAG_SERVICE, mId)
+        }
         // in foreground.
         val extra: String? = intent?.extras?.getString("extra");
         if (extra.equals("lock") || extra.equals("unlock")) {
