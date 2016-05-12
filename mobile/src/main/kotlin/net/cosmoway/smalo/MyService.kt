@@ -2,27 +2,22 @@ package net.cosmoway.smalo
 
 import android.app.Notification
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Intent
-import android.media.Ringtone
-import android.media.RingtoneManager
-import android.net.Uri
-import android.net.nsd.NsdManager
-import android.net.nsd.NsdServiceInfo
-import android.os.*
-import android.preference.PreferenceManager
+import android.os.Bundle
+import android.os.PowerManager
+import android.os.RemoteException
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v7.app.NotificationCompat
 import android.util.Log
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.wearable.MessageEvent
+import com.google.android.gms.wearable.Wearable
+import com.google.android.gms.wearable.WearableListenerService
 import org.altbeacon.beacon.*
 import org.altbeacon.beacon.startup.BootstrapNotifier
 import org.altbeacon.beacon.startup.RegionBootstrap
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory
-import java.io.IOException
-import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import javax.net.ssl.SSLContext
 
@@ -66,6 +61,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     override fun unlock() {
+        mIsUnlocked = true
         sendBroadCast("unlocked")
     }
 
@@ -120,7 +116,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         mActivity?.setCallback(this)
         //sendJson("{\"uuid\":\"$mId\"}")
         //BTMのインスタンス化
-        /*mBeaconManager = BeaconManager.getInstanceForApplication(this)。
+        mBeaconManager = BeaconManager.getInstanceForApplication(this)
         //Parserの設定
         val IBEACON_FORMAT: String = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"
         mBeaconManager?.beaconParsers?.add(BeaconParser().setBeaconLayout(IBEACON_FORMAT))
@@ -136,12 +132,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         mBeaconManager?.setBackgroundScanPeriod(3000)
         mBeaconManager?.setBackgroundBetweenScanPeriod(1000)
         mBeaconManager?.setForegroundScanPeriod(3000)
-        mBeaconManager?.setForegroundBetweenScanPeriod(1000)*/
+        mBeaconManager?.setForegroundBetweenScanPeriod(1000)
 
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
-        mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag")
+        mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE, "MyWakelockTag")
         mWakeLock?.acquire()
-
         // APIクライアント初期化
         mApiClient = GoogleApiClient
                 .Builder(this)
@@ -167,9 +162,14 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         }
         // in foreground.
         val extra: String? = intent?.extras?.getString("extra");
+        connectIfNeeded()
         if (extra.equals("lock") || extra.equals("unlock")) {
             sendJson("{\"command\":\"$extra\"}")
             //getRequest("http:/$mHost:10080/api/locks/$extra/$mHashValue")
+        } else if (extra.equals("start")) {
+            mIsBackground = false
+        } else if (extra.equals("stop")) {
+            mIsBackground = true
         }
 
         if (mHost == null) {
@@ -182,31 +182,37 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG_SERVICE, "destroy")
-        /*try {
+        try {
             // レンジング停止
             mBeaconManager?.stopRangingBeaconsInRegion(mRegion)
             mBeaconManager?.stopMonitoringBeaconsInRegion(mRegion)
         } catch (e: RemoteException) {
             e.printStackTrace()
         }
-        mBeaconManager = null*/
+        mBeaconManager = null
         mWakeLock?.release()
         disconnect()
     }
     //Beaconサービスの接続と開始
     override fun onBeaconServiceConnect() {
         //領域監視の設定
-        /*mBeaconManager?.setMonitorNotifier(this)
+        mBeaconManager?.setMonitorNotifier(this)
         try {
             // ビーコン情報の監視を開始
             mBeaconManager?.startMonitoringBeaconsInRegion(mRegion)
         } catch (e: RemoteException) {
             e.printStackTrace()
-        }*/
+        }
     }
     // 領域進入
     override fun didEnterRegion(region: Region) {
         Log.d(TAG_SERVICE, "Enter Region")
+        /*if (mIsUnlocked == false && mIsBackground == true) {
+            // TODO:解錠リクエスト
+            sendJson("{\"command\":\"unlock\"}")
+            mIsBackground = false
+            sendBroadCast("okki")
+        }*/
         makeNotification("Enter Region")
 
         // レンジング開始
@@ -240,19 +246,14 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                     + ", Distance:" + beacon.distance + "m"
                     + ", RSSI:" + beacon.rssi + ", txPower:" + beacon.txPower)
 
-            sendBroadcast(beacon.id2.toString(), beacon.id3.toString())
             val major: String = beacon.id2.toString()
             val minor: String = beacon.id3.toString()
-            Log.d(TAG_SERVICE, "Host:$mHost")
-            if (mHost != null && beacon.distance != -1.0
-                    && beacon.id1.toString() == MY_SERVICE_UUID) {
+            if (beacon.distance != -1.0 && beacon.id1.toString() == MY_SERVICE_UUID
+                    && mIsUnlocked == false && mIsBackground == true) {
                 Log.d(TAG_SERVICE, "major:$major, minor:$minor")
                 // TODO:解錠リクエスト
                 sendJson("{\"command\":\"unlock\"}")
-                /*mHashValue = toEncryptedHashValue("SHA-256", "$mId|$major|$minor")
-                getRequest("http:/$mHost:10080/api/locks/status/$mHashValue")*/
-            } else {
-                disconnect()
+                mIsBackground = false
             }
         }
     }
