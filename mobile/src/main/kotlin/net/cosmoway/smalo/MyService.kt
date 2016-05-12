@@ -113,7 +113,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG_SERVICE, "created")
-        mIsUnlocked = false
         mIsBackground = true
 
         mActivity = MobileActivity()
@@ -166,20 +165,16 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         }
         // in foreground.
         val extra: String? = intent?.extras?.getString("extra");
-        connectIfNeeded()
         if (extra.equals("lock") || extra.equals("unlock")) {
             sendJson("{\"command\":\"$extra\"}")
-            //getRequest("http:/$mHost:10080/api/locks/$extra/$mHashValue")
         } else if (extra.equals("start")) {
-            mIsBackground = false
+            ///mIsBackground = false
+            disconnect()
+            //sendBroadCast(mState as String)
+            connectIfNeeded()
         } else if (extra.equals("stop")) {
             mIsBackground = true
         }
-
-        if (mHost == null) {
-            //startDiscovery()
-        }
-
         val notification: Notification = Notification();
         notification.iconLevel = 0;
         startForeground(1, notification);
@@ -222,6 +217,8 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             sendBroadCast("okki")
         }*/
         makeNotification("Enter Region")
+        disconnect()
+        connectIfNeeded()
 
         // レンジング開始
         try {
@@ -240,8 +237,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             Log.d(TAG_SERVICE, "Exit Region")
             mBeaconManager?.stopRangingBeaconsInRegion(region)
             makeNotification("Exit Region")
-            disconnect()
-            mIsUnlocked = false
+            if (mIsBackground == true) {
+                disconnect()
+            }
         } catch (e: RemoteException) {
             e.printStackTrace()
         }
