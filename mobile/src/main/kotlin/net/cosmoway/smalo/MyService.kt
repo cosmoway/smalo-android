@@ -59,15 +59,19 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     // TODO: 状態。
     override fun lock() {
+        mIsUnlocked = false
+        mState = "locked"
         sendBroadCast("locked")
     }
 
     override fun unlock() {
         mIsUnlocked = true
+        mState = "unlocked"
         sendBroadCast("unlocked")
     }
 
     override fun unknown() {
+        mState = "unknown"
         sendBroadCast("unknown")
     }
 
