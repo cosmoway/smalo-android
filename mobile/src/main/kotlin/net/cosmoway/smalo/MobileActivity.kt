@@ -102,6 +102,12 @@ class MobileActivity : Activity(), View.OnClickListener {
         Log.d(TAG, state.toString());
     }
 
+    private fun setId(uuid: String) {
+        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sp.edit().putString("uuid", uuid).commit();
+        Log.d(TAG, uuid);
+    }
+
     //データ読み出し
     private fun getState(): Int {
         // 読み込み
@@ -111,6 +117,17 @@ class MobileActivity : Activity(), View.OnClickListener {
         //ログ表示
         Log.d(TAG, "state:$state");
         return state;
+    }
+
+    //データ読み出し
+    private fun getId(): String {
+        // 読み込み
+        val uuid: String;
+        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        uuid = sp.getString("uuid", null);
+        //ログ表示
+        Log.d(TAG, "UUID:$uuid");
+        return uuid;
     }
 
     //TODO: サービスからブロードキャストされ、値を受け取った時に動かしたい内容を書く。
@@ -315,8 +332,17 @@ class MobileActivity : Activity(), View.OnClickListener {
                 startActivity(intent)
             }
             PREFERENCE_BOOTED -> {
+                if (intent.getStringExtra("uuid") != null) {
+                    val uuid: String = intent.extras.getString("uuid")
+                    if (!uuid.isNullOrEmpty()) {
+                        setId(uuid)
+                    }
+                }
                 val intent: Intent = Intent(this, MyService::class.java)
                 intent.putExtra("extra", "start")
+                if (!getId().isNullOrEmpty()) {
+                    intent.putExtra("uuid", getId())
+                }
                 startService(intent)
             }
         }

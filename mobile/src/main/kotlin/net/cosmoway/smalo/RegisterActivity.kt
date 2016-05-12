@@ -82,6 +82,7 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
                         showSnackBar("正常に登録されました。")
                         val intent: Intent = Intent(this@RegisterActivity, MobileActivity::class.java)
                         intent.putExtra("bootState", 1)
+                        intent.putExtra("uuid", mId)
                         startActivity(intent)
                     } else if (result.equals("400")) {
                         showSnackBar("予期せぬエラーが発生致しました。\n開発者に御問合せ下さい。")
