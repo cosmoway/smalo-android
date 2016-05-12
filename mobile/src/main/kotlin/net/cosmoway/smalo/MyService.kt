@@ -179,7 +179,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         if (extra.equals("lock") || extra.equals("unlock")) {
             sendJson("{\"command\":\"$extra\"}")
         } else if (extra.equals("start")) {
-            ///mIsBackground = false
+            mIsBackground = false
             disconnect()
             //sendBroadCast(mState as String)
             connectIfNeeded()
@@ -270,6 +270,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 Log.d(TAG_SERVICE, "major:$major, minor:$minor")
                 // TODO:解錠リクエスト
                 sendJson("{\"command\":\"unlock\"}")
+                mIsUnlocked = true
             }
         }
     }
