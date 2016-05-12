@@ -18,8 +18,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
         android:layout_marginTop="-64dp"
+        android:gravity="center"
         android:orientation="vertical">
 
         <EditText
@@ -30,11 +30,12 @@
             android:layout_marginStart="32dp"
             android:background="@drawable/bg_edittext"
             android:hint="名前を入力して下さい。"
+            android:inputType="text"
             android:paddingBottom="16dp"
             android:paddingStart="8dp"
             android:paddingTop="16dp"
             android:textColor="@android:color/white"
-            android:textColorHint="@android:color/white" />
+            android:textColorHint="#65ffffff" />
 
         <Button
             android:id="@+id/button_register"
