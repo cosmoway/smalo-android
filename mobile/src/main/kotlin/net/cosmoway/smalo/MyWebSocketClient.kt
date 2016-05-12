@@ -40,6 +40,7 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
             json = JSONObject(message)
         } catch (e: JSONException) {
             e.printStackTrace()
+            Log.e(TAG, "Error:$e")
         }
 
         val str: String?
@@ -49,14 +50,15 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
                 str = json.getString("state")
                 if (str != null) {
                     when (str) {
-                        "lock" -> mCallbacks?.lock()
-                        "unlock" -> mCallbacks?.unlock()
+                        "locked" -> mCallbacks?.lock()
+                        "unlocked" -> mCallbacks?.unlock()
                         "unknown" -> mCallbacks?.unknown()
                     }
                 }
             }
         } catch (e: JSONException) {
             e.printStackTrace()
+            Log.e(TAG, "Error:$e")
         }
 
     }
