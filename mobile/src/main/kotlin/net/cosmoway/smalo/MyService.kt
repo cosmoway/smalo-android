@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.PowerManager
 import android.os.RemoteException
+import android.preference.PreferenceManager
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v7.app.NotificationCompat
 import android.util.Log
@@ -161,13 +162,25 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG_SERVICE, "Command Started")
 
+        var uuid = intent?.getStringExtra("uuid")
         // TODO:端末固有識別番号読出
-        if (intent?.extras?.getString("uuid") != null) {
-            mId = intent?.extras?.getString("uuid")
-            Log.d(TAG_SERVICE, mId)
+        if (uuid != null) {
+            Log.d(TAG_SERVICE, uuid)
         }
+
+        val sp = PreferenceManager.getDefaultSharedPreferences(this)
+        mId = sp?.getString("saveId", null)
+        if (mId == null) {
+            Log.d(TAG_SERVICE, "uuid:null")
+            // 端末固有識別番号取得
+            // mId = UUID.randomUUID().toString()
+            mId = uuid
+            sp?.edit()?.putString("saveId", mId)?.apply()
+        }
+        Log.d(TAG_SERVICE, "uuid:$mId")
+
         // in foreground.
-        val extra: String? = intent?.extras?.getString("extra");
+        val extra: String? = intent?.getStringExtra("extra");
         if (extra.equals("lock") || extra.equals("unlock")) {
             sendJson("{\"command\":\"$extra\"}")
         } else if (extra.equals("start")) {
