@@ -60,8 +60,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     // TODO: 状態。
     override fun lock() {
-        mIsUnlocked = false
         mState = "locked"
+        if (mIsUnlocked == null) {
+            mIsUnlocked = false
+        }
         sendBroadCast("locked")
     }
 
@@ -255,6 +257,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             makeNotification("Exit Region")
             if (mIsBackground == true) {
                 disconnect()
+                mIsUnlocked = false
             }
         } catch (e: RemoteException) {
             e.printStackTrace()
@@ -270,12 +273,15 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
             val major: String = beacon.id2.toString()
             val minor: String = beacon.id3.toString()
-            if (beacon.distance != -1.0 && beacon.id1.toString() == MY_SERVICE_UUID
-                    && mIsUnlocked == false && mIsBackground == true) {
-                Log.d(TAG_SERVICE, "major:$major, minor:$minor")
-                // TODO:解錠リクエスト
-                sendJson("{\"command\":\"unlock\"}")
-                mIsUnlocked = true
+            if (beacon.id1.toString() == MY_SERVICE_UUID && mIsBackground == true) {
+                if (beacon.distance != -1.0 && mIsUnlocked == false) {
+                    Log.d(TAG_SERVICE, "major:$major, minor:$minor")
+                    // TODO:解錠リクエスト
+                    sendJson("{\"command\":\"unlock\"}")
+                    mIsUnlocked = true
+                } else if (mIsUnlocked == null) {
+                    connectIfNeeded()
+                }
             }
         }
     }
