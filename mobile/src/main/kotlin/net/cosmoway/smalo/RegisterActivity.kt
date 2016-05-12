@@ -113,7 +113,7 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         if (v == mButton) {
-            // TODO: 名前及びUUIDの送信処理。(URL確定次第入れる。)
+            // TODO: 名前及びUUIDの送信処理。
             // TODO:端末固有識別番号読出
             val sp = PreferenceManager.getDefaultSharedPreferences(this)
             mId = sp?.getString("saveId", null)
