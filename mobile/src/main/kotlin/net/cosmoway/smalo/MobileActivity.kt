@@ -159,6 +159,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                 Log.d(TAG, "message:UK")
                 setColor(R.drawable.bg_grad_main, R.drawable.oval)
                 mLockButton?.isClickable = false
+                animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_search_icon)
                 mLockButton?.isEnabled = false
                 animationStart()
