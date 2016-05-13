@@ -34,7 +34,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     private var mBeaconManager: BeaconManager? = null
     // iBeacon領域
     private var mRegion: Region? = null
-    private var mHost: String? = null
     private var mState: String? = null
     // Wakelock
     private var mWakeLock: PowerManager.WakeLock? = null
@@ -51,7 +50,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     companion object {
         private val TAG_SERVICE = "MyService"
         private val TAG_API = "API"
-        //private val MY_SERVICE_NAME = "smalo-dev"
         private val MY_SERVICE_UUID = "51a4a738-62b8-4b26-a929-3bbac2a5ce7c"
         private val MY_APP_NAME = "SMALO"
     }
@@ -126,7 +124,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
         mActivity = MobileActivity()
         mActivity?.setCallback(this)
-        //sendJson("{\"uuid\":\"$mId\"}")
         //BTMのインスタンス化
         mBeaconManager = BeaconManager.getInstanceForApplication(this)
         //Parserの設定
@@ -138,7 +135,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         val beaconId = this@MyService.packageName
         // major, minorの指定はしない
         mRegion = Region(beaconId, identifier, null, null)
-        //mRegion = Region(beaconId, null, null, null)
         mRegionBootstrap = RegionBootstrap(this, mRegion)
         // iBeacon領域を監視(モニタリング)するスキャン間隔を設定
         mBeaconManager?.setBackgroundScanPeriod(3000)
@@ -163,7 +159,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.d(TAG_SERVICE, "Command Started")
 
         var uuid = intent?.getStringExtra("uuid")
-        // TODO:端末固有識別番号読出
+        // TODO: UUID読出
         if (uuid != null) {
             Log.d(TAG_SERVICE, uuid)
         }
@@ -173,7 +169,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         if (mId == null) {
             Log.d(TAG_SERVICE, "uuid:null")
             // 端末固有識別番号取得
-            // mId = UUID.randomUUID().toString()
             mId = uuid
             sp?.edit()?.putString("saveId", mId)?.apply()
         }
@@ -186,7 +181,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         } else if (extra.equals("start")) {
             mIsBackground = false
             disconnect()
-            //sendBroadCast(mState as String)
             connectIfNeeded()
         } else if (extra.equals("stop")) {
             mIsBackground = true
