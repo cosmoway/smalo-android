@@ -145,6 +145,75 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         baseContext.sendBroadcast(broadcastIntent)
     }
 
+    override fun onConnected(bundle: Bundle?) {
+        Log.d(TAG_API, "onConnected")
+    }
+
+    override fun onConnectionSuspended(i: Int) {
+        Log.d(TAG_API, "Suspended")
+    }
+
+    override fun onConnectionFailed(connectionResult: ConnectionResult) {
+        Log.d(TAG_API, "Failed")
+    }
+
+    override fun onUnLocking() {
+        Log.d(TAG_SERVICE, "unlocking")
+        sendJson("{\"command\":\"unlock\"}")
+    }
+
+    override fun onLocking() {
+        Log.d(TAG_SERVICE, "locking")
+        sendJson("{\"command\":\"lock\"}")
+    }
+
+    override fun onConnecting() {
+        Log.d(TAG_SERVICE, "connecting")
+        sendJson("{\"uuid\":\"$mId\"}")
+    }
+
+    override fun error() {
+        Log.d(TAG_SERVICE, "error")
+        connectIfNeeded()
+    }
+
+    private fun sendJson(json: String) {
+        Log.d(TAG_SERVICE, "sendJson")
+        connectIfNeeded()
+        Log.d(TAG_SERVICE, mWebSocketClient?.isOpen.toString())
+        if (mWebSocketClient?.isOpen as Boolean) {
+            mWebSocketClient?.send(json)
+        }
+    }
+
+    private fun connectIfNeeded() {
+        Log.d(TAG_SERVICE, "connectIfNeeded")
+        if (mWebSocketClient == null || (mWebSocketClient as MyWebSocketClient).isClosed) {
+            Log.d(TAG_SERVICE, "connect")
+            mWebSocketClient = MyWebSocketClient.newInstance()
+
+            val sslContext = SSLContext.getInstance("TLS")
+            sslContext.init(null, null, SecureRandom());
+            mWebSocketClient?.setWebSocketFactory(DefaultSSLWebSocketClientFactory(sslContext))
+
+            mWebSocketClient?.setCallbacks(this@MyService)
+            mWebSocketClient?.connect()
+        }
+    }
+
+    private fun disconnect() {
+        Log.d(TAG_SERVICE, "disconnect")
+        mWebSocketClient?.close()
+        mWebSocketClient = null
+    }
+
+    private fun isConnected(): Boolean {
+        if (!NetworkManager.isConnected(this)) {
+            return false;
+        }
+        return true;
+    }
+
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG_SERVICE, "created")
@@ -351,68 +420,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 Log.d("要求", "通ってない")
             }
         }
-    }
-
-    override fun onConnected(bundle: Bundle?) {
-        Log.d(TAG_API, "onConnected")
-    }
-
-    override fun onConnectionSuspended(i: Int) {
-        Log.d(TAG_API, "Suspended")
-    }
-
-    override fun onConnectionFailed(connectionResult: ConnectionResult) {
-        Log.d(TAG_API, "Failed")
-    }
-
-    override fun onUnLocking() {
-        Log.d(TAG_SERVICE, "unlocking")
-        sendJson("{\"command\":\"unlock\"}")
-    }
-
-    override fun onLocking() {
-        Log.d(TAG_SERVICE, "locking")
-        sendJson("{\"command\":\"lock\"}")
-    }
-
-    override fun onConnecting() {
-        Log.d(TAG_SERVICE, "connecting")
-        sendJson("{\"uuid\":\"$mId\"}")
-    }
-
-    override fun error() {
-        Log.d(TAG_SERVICE, "error")
-        connectIfNeeded()
-    }
-
-    private fun sendJson(json: String) {
-        Log.d(TAG_SERVICE, "sendJson")
-        connectIfNeeded()
-        Log.d(TAG_SERVICE, mWebSocketClient?.isOpen.toString())
-        if (mWebSocketClient?.isOpen as Boolean) {
-            mWebSocketClient?.send(json)
-        }
-    }
-
-    private fun connectIfNeeded() {
-        Log.d(TAG_SERVICE, "connectIfNeeded")
-        if (mWebSocketClient == null || (mWebSocketClient as MyWebSocketClient).isClosed) {
-            Log.d(TAG_SERVICE, "connect")
-            mWebSocketClient = MyWebSocketClient.newInstance()
-
-            val sslContext = SSLContext.getInstance("TLS")
-            sslContext.init(null, null, SecureRandom());
-            mWebSocketClient?.setWebSocketFactory(DefaultSSLWebSocketClientFactory(sslContext))
-
-            mWebSocketClient?.setCallbacks(this@MyService)
-            mWebSocketClient?.connect()
-        }
-    }
-
-    private fun disconnect() {
-        Log.d(TAG_SERVICE, "disconnect")
-        mWebSocketClient?.close()
-        mWebSocketClient = null
     }
 }
 
