@@ -40,7 +40,6 @@ class MobileActivity : Activity(), View.OnClickListener {
     private var mState: String? = null
     private var mIntentFilter: IntentFilter? = null
     private var mLockButton: ImageButton? = null
-    private var mIsLocked: Boolean? = null
     private var mBackground: LinearLayout? = null
     private var mAnimatorSet1: AnimatorSet? = null
     private var mAnimatorSet2: AnimatorSet? = null
@@ -133,22 +132,16 @@ class MobileActivity : Activity(), View.OnClickListener {
         override fun handleMessage(msg: Message) {
             val bundle = msg.data
             mState = bundle.getString("state")
-            if (mState.equals("locked") || (mState.equals("200 OK") && mIsLocked == false)) {
-                if (mState.equals("200 OK") && mIsLocked == false) {
-                    makeNotification("施錠されました。")
-                }
-                mIsLocked = true
+            if (mState.equals("locked")) {
+                makeNotification("施錠されました。")
                 Log.d(TAG, "message:L")
                 setColor(R.drawable.bg_grad_main, R.drawable.oval)
                 mLockButton?.isClickable = true
                 animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_close_button)
                 mLockButton?.isEnabled = true
-            } else if (mState.equals("unlocked") || (mState.equals("200 OK") && mIsLocked == true)) {
-                if (mState.equals("200 OK") && mIsLocked == true) {
-                    makeNotification("解錠されました。")
-                }
-                mIsLocked = false
+            } else if (mState.equals("unlocked")) {
+                makeNotification("解錠されました。")
                 Log.d(TAG, "message:UL")
                 setColor(R.drawable.bg_grad_unlocked, R.drawable.oval_unlocked)
                 mLockButton?.isClickable = true
