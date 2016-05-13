@@ -65,12 +65,14 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             mIsUnlocked = false
         }
         sendBroadCast("locked")
+        sendDataByMessageApi("locked")
     }
 
     override fun unlock() {
         mIsUnlocked = true
         mState = "unlocked"
         sendBroadCast("unlocked")
+        sendDataByMessageApi("unlocked")
         if (mIsBackground == true) {
             disconnect()
         }
@@ -79,6 +81,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun unknown() {
         mState = "unknown"
         sendBroadCast("unknown")
+        sendDataByMessageApi("unknown")
     }
 
     override fun connectionOpen() {
