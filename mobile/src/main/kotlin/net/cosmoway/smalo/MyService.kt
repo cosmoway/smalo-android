@@ -2,6 +2,8 @@ package net.cosmoway.smalo
 
 import android.app.Notification
 import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.media.MediaPlayer
 import android.media.RingtoneManager
@@ -13,6 +15,7 @@ import android.preference.PreferenceManager
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v7.app.NotificationCompat
 import android.util.Log
+import android.widget.RemoteViews
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.MessageEvent
@@ -59,6 +62,15 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         private val MY_APP_NAME = "SMALO"
     }
 
+    override fun onStateChange(str: String?) {
+        // AppWidgetの画面更新
+        val widgetViews: RemoteViews = RemoteViews(packageName, R.layout.widget_layout);
+        widgetViews.setTextViewText(R.id.info, str);
+        val widget: ComponentName = ComponentName(this, MyWidgetProvider::class.java);
+        val manager: AppWidgetManager = AppWidgetManager.getInstance(this);
+        manager.updateAppWidget(widget, widgetViews);
+    }
+
     // TODO: 状態。
     override fun lock() {
         mState = "locked"
@@ -93,7 +105,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         sendJson("{\"uuid\":\"$mId\"}")
     }
 
-    private fun ringTone(){
+    private fun ringTone() {
         val uri: Uri? = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         val mp: MediaPlayer = MediaPlayer.create(baseContext, uri)
         mp.isLooping = false
@@ -244,12 +256,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     // 領域進入
     override fun didEnterRegion(region: Region) {
         Log.d(TAG_SERVICE, "Enter Region")
-        /*if (mIsUnlocked == false && mIsBackground == true) {
-            // TODO:解錠リクエスト
-            sendJson("{\"command\":\"unlock\"}")
-            mIsBackground = false
-            sendBroadCast("okki")
-        }*/
         makeNotification("Enter Region")
         disconnect()
         connectIfNeeded()
@@ -398,6 +404,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         if (mWebSocketClient == null || (mWebSocketClient as MyWebSocketClient).isClosed) {
             Log.d(TAG_SERVICE, "connect")
             mWebSocketClient = MyWebSocketClient.newInstance()
+
             val sslContext = SSLContext.getInstance("TLS")
             sslContext.init(null, null, SecureRandom());
             mWebSocketClient?.setWebSocketFactory(DefaultSSLWebSocketClientFactory(sslContext))
