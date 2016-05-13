@@ -20,6 +20,8 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
         fun connectionOpen()
 
         fun error()
+
+        fun onStateChange(str: String?)
     }
 
     private var mCallbacks: MyCallbacks? = null
@@ -48,6 +50,7 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
         try {
             if (json != null) {
                 str = json.getString("state")
+                mCallbacks?.onStateChange(str)
                 if (str != null) {
                     when (str) {
                         "locked" -> mCallbacks?.lock()
