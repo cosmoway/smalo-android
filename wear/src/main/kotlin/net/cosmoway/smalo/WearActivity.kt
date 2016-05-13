@@ -78,9 +78,9 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
                 Log.d(TAG, "onRequire")
                 sendDataByMessageApi("stateUpdate")
                 if (mState.equals("unlocked")) {
-                    mButton?.setImageResource(R.drawable.shape_yellow)
+                    mButton?.setBackgroundResource(R.drawable.shape_yellow)
                 } else if (mState.equals("locked")) {
-                    mButton?.setImageResource(R.drawable.shape_blue)
+                    mButton?.setBackgroundResource(R.drawable.shape_blue)
                 }
             }
         }

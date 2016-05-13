@@ -27,9 +27,9 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
     companion object {
         private val TAG_APP = "RegisterActivity"
         private val MY_SERVICE_NAME = "smalo"
+        // private val MY_SERVICE_NAME = "smalo-dev"
         private val URL = "https://smalo.cosmoway.net:8443/api/v1/devices"
         private val TYPE = MediaType.parse("application/json; charset=utf-8")
-        //private val MY_SERVICE_NAME = "smalo-dev"
     }
 
     private fun showSnackBar(msg: String) {
@@ -121,7 +121,6 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
                 Log.d("id", "null")
                 // 端末固有識別番号取得
                 mId = UUID.randomUUID().toString()
-                // mId = "2df60388-e96e-4945-93d0-a4836ee75a3c" //ando test
                 sp?.edit()?.putString("saveId", mId)?.apply()
             }
             Log.d("id", mId)
