@@ -325,12 +325,6 @@ class MobileActivity : Activity(), View.OnClickListener {
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "Resumed")
-        /*val km: KeyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-        val kl: KeyguardManager.KeyguardLock = km.newKeyguardLock("Your App Tag");
-        kl.disableKeyguard();
-        val pm = getSystemService(POWER_SERVICE) as PowerManager
-        val screenLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "Your App Tag")
-        screenLock.acquire(1000)*/
         //window.addFlags(FLAG_KEYGUARD)
         Log.d(TAG, getState().toString())
         when (getState()) {
@@ -354,9 +348,6 @@ class MobileActivity : Activity(), View.OnClickListener {
                 startService(intent)
             }
         }
-        /*if (mCallback != null) {
-            (mCallback as Callback).onConnecting()
-        }*/
     }
 
     override fun onDestroy() {
