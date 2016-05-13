@@ -60,6 +60,7 @@
 
         <receiver
             android:name=".MyBootReceiver"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
             android:process=":remote">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
