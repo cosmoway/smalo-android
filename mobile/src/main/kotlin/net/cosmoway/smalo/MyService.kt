@@ -3,6 +3,9 @@ package net.cosmoway.smalo
 import android.app.Notification
 import android.app.PendingIntent
 import android.content.Intent
+import android.media.MediaPlayer
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
 import android.os.RemoteException
@@ -67,12 +70,16 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     override fun unlock() {
-        mIsUnlocked = true
         mState = "unlocked"
         sendBroadCast("unlocked")
         sendDataByMessageApi("unlocked")
         if (mIsBackground == true) {
             disconnect()
+            if (mIsUnlocked == true) {
+                ringTone()
+            } else {
+                mIsUnlocked = true
+            }
         }
     }
 
@@ -84,6 +91,15 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     override fun connectionOpen() {
         sendJson("{\"uuid\":\"$mId\"}")
+    }
+
+    private fun ringTone(){
+        val uri: Uri? = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        val mp: MediaPlayer = MediaPlayer.create(baseContext, uri)
+        mp.isLooping = false
+        mp.seekTo(0)
+        mp.start()
+        mp.setOnCompletionListener({ mp.stop() })
     }
 
 
