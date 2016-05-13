@@ -191,6 +191,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         } else if (extra.equals("stop")) {
             mIsBackground = true
         }
+        if (mId == null) {
+            stopSelf()
+        }
         val notification: Notification = Notification();
         notification.iconLevel = 0;
         startForeground(1, notification);
@@ -267,15 +270,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
         beacons?.forEach { beacon ->
             // ログの出力
-            Log.d("Beacon", "UUID:" + beacon.id1 + ", major:" + beacon.id2 + ", minor:" + beacon.id3
-                    + ", Distance:" + beacon.distance + "m"
+            Log.d("Beacon", "UUID:" + beacon.id1 + ", Distance:" + beacon.distance + "m"
                     + ", RSSI:" + beacon.rssi + ", txPower:" + beacon.txPower)
-
-            val major: String = beacon.id2.toString()
-            val minor: String = beacon.id3.toString()
             if (beacon.id1.toString() == MY_SERVICE_UUID && mIsBackground == true) {
                 if (beacon.distance != -1.0 && mIsUnlocked == false) {
-                    Log.d(TAG_SERVICE, "major:$major, minor:$minor")
                     // TODO:解錠リクエスト
                     sendJson("{\"command\":\"unlock\"}")
                     mIsUnlocked = true
