@@ -205,6 +205,8 @@ class MobileActivity : Activity(), View.OnClickListener {
                 AlertDialog.Builder(this)
                         .setTitle("確認")
                         .setMessage(MY_APP_NAME + "が正常に動作する為には、電池の最適化の解除が必要です。\n" +
+                                "OKボタンを押すと、アプリ設定画面に移動します。\n" +
+                                "最適化を解除する場合、「バッテリー」をタップし、設定を変更して下さい。" +
                                 "なお、最適化状態時は、" + MY_APP_NAME + "の動作に影響が発生します。")
                         .setPositiveButton("OK") { dialog, which ->
                             val intent: Intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
