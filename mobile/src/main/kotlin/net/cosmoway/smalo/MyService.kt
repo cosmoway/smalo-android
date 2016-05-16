@@ -179,7 +179,8 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     private fun connectIfNeeded() {
         Log.d(TAG_SERVICE, "connectIfNeeded")
-        if (mWebSocketClient == null || (mWebSocketClient as MyWebSocketClient).isClosed) {
+        if ((mWebSocketClient == null || (mWebSocketClient as MyWebSocketClient).isClosed)
+                && isConnected()) {
             Log.d(TAG_SERVICE, "connect")
             mWebSocketClient = MyWebSocketClient.newInstance()
 
