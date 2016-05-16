@@ -28,7 +28,8 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
         private val TAG_APP = "RegisterActivity"
         private val MY_SERVICE_NAME = "smalo"
         // private val MY_SERVICE_NAME = "smalo-dev"
-        private val URL = "https://smalo.cosmoway.net:8443/api/v1/devices"
+        //private val URL = "https://smalo.cosmoway.net:8443/api/v1/devices"
+        private val URL = "https://smalo.cosmoway.net/api/v1/devices"
         private val TYPE = MediaType.parse("application/json; charset=utf-8")
     }
 

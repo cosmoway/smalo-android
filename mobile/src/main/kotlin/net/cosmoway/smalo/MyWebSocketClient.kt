@@ -75,7 +75,9 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
         fun newInstance(): MyWebSocketClient {
             var uri: URI? = null
             try {
-                uri = URI("wss://smalo.cosmoway.net:8443")
+                //uri = URI("wss://echo.websocket.org")
+                //uri = URI("wss://smalo.cosmoway.net:8443")
+                uri = URI("wss://smalo.cosmoway.net")
             } catch (e: URISyntaxException) {
                 e.printStackTrace()
             }
