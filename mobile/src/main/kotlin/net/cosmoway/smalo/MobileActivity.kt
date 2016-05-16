@@ -54,10 +54,6 @@ class MobileActivity : Activity(), View.OnClickListener {
     private var mOval5: ImageView? = null
 
     companion object {
-        //スリープモードからの復帰の為のフラグ定数
-        private val FLAG_KEYGUARD =
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
         private val REQUEST_PERMISSION = 1
         private val TAG = "MainActivity"
 
@@ -95,13 +91,13 @@ class MobileActivity : Activity(), View.OnClickListener {
 
     private fun setState(state: Int) {
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        sp.edit().putInt("InitState", state).commit();
+        sp.edit().putInt("InitState", state).apply();
         Log.d(TAG, state.toString());
     }
 
     private fun setId(uuid: String) {
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        sp.edit().putString("uuid", uuid).commit();
+        sp.edit().putString("uuid", uuid).apply();
         Log.d(TAG, uuid);
     }
 
@@ -284,7 +280,6 @@ class MobileActivity : Activity(), View.OnClickListener {
         if (getState() == PREFERENCE_BOOTED) {
             setContentView(R.layout.activity_mobile)
             mState = "unknown"
-            //setCallback(MyService.this)
             findViews()
             mLockButton?.setOnClickListener(this)
             setAnimators()
@@ -304,7 +299,6 @@ class MobileActivity : Activity(), View.OnClickListener {
     override fun onStop() {
         super.onStop()
         Log.d(TAG, "Stopped")
-        //window.clearFlags(FLAG_KEYGUARD)
         if (getState() == PREFERENCE_BOOTED) {
             val intent: Intent = Intent(this, MyService::class.java)
             intent.putExtra("extra", "stop")
@@ -315,7 +309,6 @@ class MobileActivity : Activity(), View.OnClickListener {
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "Resumed")
-        //window.addFlags(FLAG_KEYGUARD)
         Log.d(TAG, getState().toString())
         when (getState()) {
             PREFERENCE_INIT -> {
@@ -325,7 +318,7 @@ class MobileActivity : Activity(), View.OnClickListener {
             }
             PREFERENCE_BOOTED -> {
                 if (intent.getStringExtra("uuid") != null) {
-                    val uuid: String = intent.extras.getString("uuid")
+                    val uuid: String = intent.getStringExtra("uuid")
                     if (!uuid.isNullOrEmpty()) {
                         setId(uuid)
                     }

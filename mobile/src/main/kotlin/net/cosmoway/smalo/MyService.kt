@@ -240,7 +240,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         mBeaconManager?.setForegroundBetweenScanPeriod(1000)
 
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
-        mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE, "MyWakelockTag")
+        mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK
+                or PowerManager.ACQUIRE_CAUSES_WAKEUP
+                or PowerManager.ON_AFTER_RELEASE, "MyWakelockTag")
         mWakeLock?.acquire()
         // APIクライアント初期化
         mApiClient = GoogleApiClient
@@ -255,7 +257,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG_SERVICE, "Command Started")
 
-        var uuid = intent?.getStringExtra("uuid")
+        val uuid = intent?.getStringExtra("uuid")
         // TODO: UUID読出
         if (uuid != null) {
             Log.d(TAG_SERVICE, uuid)
