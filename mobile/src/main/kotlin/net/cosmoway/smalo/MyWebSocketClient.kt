@@ -11,12 +11,6 @@ import java.net.URISyntaxException
 class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
 
     interface MyCallbacks {
-        fun lock()
-
-        fun unlock()
-
-        fun unknown()
-
         fun connectionOpen()
 
         fun error()
@@ -51,13 +45,6 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
             if (json != null) {
                 str = json.getString("state")
                 mCallbacks?.onStateChange(str)
-                if (str != null) {
-                    when (str) {
-                        "locked" -> mCallbacks?.lock()
-                        "unlocked" -> mCallbacks?.unlock()
-                        "unknown" -> mCallbacks?.unknown()
-                    }
-                }
             }
         } catch (e: JSONException) {
             e.printStackTrace()
