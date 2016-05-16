@@ -22,7 +22,6 @@ import android.support.v7.app.AlertDialog
 import android.support.v7.app.NotificationCompat
 import android.util.Log
 import android.view.View
-import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout

@@ -62,7 +62,44 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         private val MY_APP_NAME = "SMALO"
     }
 
+    override fun connectionOpen() {
+        sendJson("{\"uuid\":\"$mId\"}")
+    }
+
+    override fun onConnected(bundle: Bundle?) {
+        Log.d(TAG_API, "onConnected")
+    }
+
+    override fun onConnectionSuspended(i: Int) {
+        Log.d(TAG_API, "Suspended")
+    }
+
+    override fun onConnectionFailed(connectionResult: ConnectionResult) {
+        Log.d(TAG_API, "Failed")
+    }
+
     override fun onStateChange(str: String?) {
+        sendBroadCast(str as String)
+        sendDataByMessageApi(str)
+        mState = str
+        Log.d(TAG_SERVICE, mState)
+        when (str) {
+            "locked" -> {
+                if (mIsUnlocked == null) {
+                    mIsUnlocked = false
+                }
+            }
+            "unlocked" -> {
+                if (mIsBackground == true) {
+                    disconnect()
+                    if (mIsUnlocked == true) {
+                        ringTone()
+                    } else {
+                        mIsUnlocked = true
+                    }
+                }
+            }
+        }
         // AppWidgetの画面更新
         val widgetViews: RemoteViews = RemoteViews(packageName, R.layout.widget_layout);
         widgetViews.setTextViewText(R.id.info, str);
@@ -71,38 +108,33 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         manager.updateAppWidget(widget, widgetViews);
     }
 
-    // TODO: 状態。
-    override fun lock() {
-        mState = "locked"
-        if (mIsUnlocked == null) {
-            mIsUnlocked = false
-        }
-        sendBroadCast("locked")
-        sendDataByMessageApi("locked")
+    override fun onUnLocking() {
+        Log.d(TAG_SERVICE, "unlocking")
+        sendJson("{\"command\":\"unlock\"}")
     }
 
-    override fun unlock() {
-        mState = "unlocked"
-        sendBroadCast("unlocked")
-        sendDataByMessageApi("unlocked")
-        if (mIsBackground == true) {
-            disconnect()
-            if (mIsUnlocked == true) {
-                ringTone()
-            } else {
-                mIsUnlocked = true
-            }
-        }
+    override fun onLocking() {
+        Log.d(TAG_SERVICE, "locking")
+        sendJson("{\"command\":\"lock\"}")
     }
 
-    override fun unknown() {
-        mState = "unknown"
-        sendBroadCast("unknown")
-        sendDataByMessageApi("unknown")
-    }
-
-    override fun connectionOpen() {
+    override fun onConnecting() {
+        Log.d(TAG_SERVICE, "connecting")
         sendJson("{\"uuid\":\"$mId\"}")
+    }
+
+    override fun error() {
+        Log.d(TAG_SERVICE, "error")
+        connectIfNeeded()
+    }
+
+    private fun sendJson(json: String) {
+        Log.d(TAG_SERVICE, "sendJson")
+        connectIfNeeded()
+        Log.d(TAG_SERVICE, mWebSocketClient?.isOpen.toString())
+        if (mWebSocketClient?.isOpen as Boolean) {
+            mWebSocketClient?.send(json)
+        }
     }
 
     private fun ringTone() {
@@ -145,47 +177,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         broadcastIntent.putExtra("state", state)
         broadcastIntent.action = "UPDATE_ACTION"
         baseContext.sendBroadcast(broadcastIntent)
-    }
-
-    override fun onConnected(bundle: Bundle?) {
-        Log.d(TAG_API, "onConnected")
-    }
-
-    override fun onConnectionSuspended(i: Int) {
-        Log.d(TAG_API, "Suspended")
-    }
-
-    override fun onConnectionFailed(connectionResult: ConnectionResult) {
-        Log.d(TAG_API, "Failed")
-    }
-
-    override fun onUnLocking() {
-        Log.d(TAG_SERVICE, "unlocking")
-        sendJson("{\"command\":\"unlock\"}")
-    }
-
-    override fun onLocking() {
-        Log.d(TAG_SERVICE, "locking")
-        sendJson("{\"command\":\"lock\"}")
-    }
-
-    override fun onConnecting() {
-        Log.d(TAG_SERVICE, "connecting")
-        sendJson("{\"uuid\":\"$mId\"}")
-    }
-
-    override fun error() {
-        Log.d(TAG_SERVICE, "error")
-        connectIfNeeded()
-    }
-
-    private fun sendJson(json: String) {
-        Log.d(TAG_SERVICE, "sendJson")
-        connectIfNeeded()
-        Log.d(TAG_SERVICE, mWebSocketClient?.isOpen.toString())
-        if (mWebSocketClient?.isOpen as Boolean) {
-            mWebSocketClient?.send(json)
-        }
     }
 
     private fun connectIfNeeded() {
