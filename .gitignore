@@ -4,7 +4,6 @@
 
 # Files for the Dalvik VM
 *.dex
-.idea/workspace.xml
 
 # Java class files
 *.class
