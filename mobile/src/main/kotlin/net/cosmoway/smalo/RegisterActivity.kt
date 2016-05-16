@@ -44,7 +44,7 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
         object : AsyncTask<Void?, Void?, String?>() {
             override fun doInBackground(vararg params: Void?): String? {
                 val body: RequestBody = RequestBody.create(TYPE, json);
-                var result: String
+                val result: String
                 // リクエストオブジェクトを作って
                 val request: Request = Request
                         .Builder()

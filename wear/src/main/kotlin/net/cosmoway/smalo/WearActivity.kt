@@ -12,7 +12,8 @@ import com.google.android.gms.wearable.MessageApi
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 
-class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
+class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
     private val TAG = "WearActivity"
 
@@ -53,7 +54,7 @@ class WearActivity : Activity(), MessageApi.MessageListener, GoogleApiClient.Con
         if (mApiClient != null && mApiClient?.isConnected as Boolean) {
             Wearable.MessageApi.removeListener(mApiClient, this)
             mApiClient?.disconnect()
-            //Log.d(TAG, "onPause");
+            Log.d(TAG, "onPause")
         }
     }
 
