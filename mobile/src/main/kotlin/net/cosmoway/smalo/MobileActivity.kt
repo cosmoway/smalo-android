@@ -204,14 +204,15 @@ class MobileActivity : Activity(), View.OnClickListener {
                         .setMessage(MY_APP_NAME + "が正常に動作する為には、電池の最適化の解除が必要です。\n" +
                                 "なお、最適化状態時は、" + MY_APP_NAME + "の動作に影響が発生します。")
                         .setPositiveButton("OK") { dialog, which ->
-                            val intent = Intent(
-                                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-                            intent.data = Uri.parse("package:" + packageName)
-                            startActivityForResult(intent, REQUEST_PERMISSION)
+                            val intent: Intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                            val uri: Uri = Uri.fromParts("package", getPackageName(), null)
+                            intent.data = uri
+                            startActivity(intent)
                         }.show()
             }
         }
     }
+
 
     private fun requestAccessStoragePermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
