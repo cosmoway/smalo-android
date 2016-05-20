@@ -66,7 +66,7 @@ class MobileActivity : Activity(), View.OnClickListener {
     }
 
     private fun animationStart() {
-        Log.d(TAG, "animStart")
+        Log.i(TAG, "animStart")
         mAnimatorSet1?.start()
         mAnimatorSet2?.start()
         mAnimatorSet3?.start()
@@ -75,12 +75,12 @@ class MobileActivity : Activity(), View.OnClickListener {
     }
 
     private fun buttonAnimationStart() {
-        Log.d(TAG, "animStart")
+        Log.i(TAG, "animStart")
         mAnimatorSet6?.start()
     }
 
     private fun animationEnd() {
-        Log.d(TAG, "animEnd")
+        Log.i(TAG, "animEnd")
         mAnimatorSet1?.end()
         mAnimatorSet2?.end()
         mAnimatorSet3?.end()
@@ -91,13 +91,13 @@ class MobileActivity : Activity(), View.OnClickListener {
     private fun setState(state: Int) {
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sp.edit().putInt("InitState", state).apply();
-        Log.d(TAG, state.toString());
+        Log.i(TAG, state.toString());
     }
 
     private fun setId(uuid: String) {
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sp.edit().putString("uuid", uuid).apply();
-        Log.d(TAG, uuid);
+        Log.i(TAG, uuid);
     }
 
     //データ読み出し
@@ -107,7 +107,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         state = sp.getInt("InitState", PREFERENCE_INIT);
         //ログ表示
-        Log.d(TAG, "state:$state");
+        Log.i(TAG, "state:$state");
         return state;
     }
 
@@ -118,7 +118,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         uuid = sp.getString("uuid", null);
         //ログ表示
-        Log.d(TAG, "UUID:$uuid");
+        Log.i(TAG, "UUID:$uuid");
         return uuid;
     }
 
@@ -129,7 +129,7 @@ class MobileActivity : Activity(), View.OnClickListener {
             mState = bundle.getString("state")
             if (mState.equals("locked")) {
                 makeNotification("施錠されました。")
-                Log.d(TAG, "message:L")
+                Log.i(TAG, "message:L")
                 setColor(R.drawable.bg_grad_main, R.drawable.oval)
                 mLockButton?.isClickable = true
                 animationEnd()
@@ -137,14 +137,14 @@ class MobileActivity : Activity(), View.OnClickListener {
                 mLockButton?.isEnabled = true
             } else if (mState.equals("unlocked")) {
                 makeNotification("解錠されました。")
-                Log.d(TAG, "message:UL")
+                Log.i(TAG, "message:UL")
                 setColor(R.drawable.bg_grad_unlocked, R.drawable.oval_unlocked)
                 mLockButton?.isClickable = true
                 animationEnd()
                 mLockButton?.setImageResource(R.drawable.smalo_open_button)
                 mLockButton?.isEnabled = true
             } else if (mState.equals("unknown")) {
-                Log.d(TAG, "message:UK")
+                Log.i(TAG, "message:UK")
                 setColor(R.drawable.bg_grad_main, R.drawable.oval)
                 mLockButton?.isClickable = false
                 animationEnd()
@@ -273,12 +273,12 @@ class MobileActivity : Activity(), View.OnClickListener {
         (mIntentFilter as IntentFilter).addAction("UPDATE_ACTION")
         registerReceiver(mReceiver, mIntentFilter)
         mReceiver?.registerHandler(updateHandler)
-        Log.d(TAG, "Created")
+        Log.i(TAG, "Created")
         val state: Int? = intent?.getIntExtra("bootState", 0)
         if (state == PREFERENCE_BOOTED) {
             setState(state)
         }
-        Log.d(TAG, "State:${getState()}")
+        Log.i(TAG, "State:${getState()}")
         if (getState() == PREFERENCE_BOOTED) {
             setContentView(R.layout.activity_mobile)
             mState = "unknown"
@@ -300,7 +300,7 @@ class MobileActivity : Activity(), View.OnClickListener {
 
     override fun onStop() {
         super.onStop()
-        Log.d(TAG, "Stopped")
+        Log.i(TAG, "Stopped")
         if (getState() == PREFERENCE_BOOTED) {
             val intent: Intent = Intent(this, MyService::class.java)
             intent.putExtra("extra", "stop")
@@ -310,8 +310,8 @@ class MobileActivity : Activity(), View.OnClickListener {
 
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "Resumed")
-        Log.d(TAG, getState().toString())
+        Log.i(TAG, "Resumed")
+        Log.i(TAG, getState().toString())
         when (getState()) {
             PREFERENCE_INIT -> {
                 val intent: Intent = Intent(this, RegisterActivity::class.java)
@@ -337,7 +337,7 @@ class MobileActivity : Activity(), View.OnClickListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "Destroyed")
+        Log.i(TAG, "Destroyed")
         unregisterReceiver(mReceiver)
         mAnimatorSet1?.end()
         mAnimatorSet1 = null
@@ -357,7 +357,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         if (v == mLockButton) {
             if (mState != null) {
                 animationEnd()
-                Log.d(TAG, mCallback.toString())
+                Log.i(TAG, mCallback.toString())
                 if (mState.equals("locked")) {
                     val intent: Intent = Intent(this, MyService::class.java)
                     intent.putExtra("extra", "unlock")
