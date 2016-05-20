@@ -27,8 +27,8 @@ class MyBroadcastReceiver : BroadcastReceiver() {
     /**
      * メイン画面の表示を更新
      */
-    fun registerHandler(locationUpdateHandler: Handler) {
-        sHandler = locationUpdateHandler
+    fun registerHandler(handler: Handler) {
+        sHandler = handler
     }
 
     companion object {
