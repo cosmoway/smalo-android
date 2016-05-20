@@ -13,7 +13,7 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
     interface MyCallbacks {
         fun connectionOpen()
 
-        fun error()
+        fun error(ex: Exception)
 
         fun onStateChange(str: String?)
     }
@@ -59,7 +59,7 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
 
     override fun onError(ex: Exception) {
         Log.w(TAG, "Connection failed:" + ex.message)
-        mCallbacks?.error()
+        mCallbacks?.error(ex)
     }
 
     val isOpen: Boolean
