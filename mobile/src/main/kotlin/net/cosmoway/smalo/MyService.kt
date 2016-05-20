@@ -123,9 +123,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         sendJson("{\"uuid\":\"$mId\"}")
     }
 
-    override fun error() {
-        Log.d(TAG_SERVICE, "error")
-        connectIfNeeded()
+    override fun error(ex: Exception) {
+        Log.i(TAG_SERVICE, "error:${ex.message}")
+        if (!ex.message.equals("ssl == null"))
+            connectIfNeeded()
     }
 
     private fun sendJson(json: String) {
