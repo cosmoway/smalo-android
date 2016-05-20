@@ -30,7 +30,7 @@ class MyWebSocketClient(serverURI: URI) : WebSocketClient(serverURI) {
     }
 
     override fun onMessage(message: String) {
-        Log.d(TAG, "Massage: " + message)
+        Log.i(TAG, "Massage: " + message)
         var json: JSONObject? = null
         try {
             json = JSONObject(message)

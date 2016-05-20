@@ -25,7 +25,6 @@ import org.altbeacon.beacon.*
 import org.altbeacon.beacon.startup.BootstrapNotifier
 import org.altbeacon.beacon.startup.RegionBootstrap
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory
-import java.security.SecureRandom
 import javax.net.ssl.SSLContext
 
 // BeaconServiceクラス
@@ -67,22 +66,22 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     override fun onConnected(bundle: Bundle?) {
-        Log.d(TAG_API, "onConnected")
+        Log.i(TAG_API, "onConnected")
     }
 
     override fun onConnectionSuspended(i: Int) {
-        Log.d(TAG_API, "Suspended")
+        Log.i(TAG_API, "Suspended")
     }
 
     override fun onConnectionFailed(connectionResult: ConnectionResult) {
-        Log.d(TAG_API, "Failed")
+        Log.i(TAG_API, "Failed")
     }
 
     override fun onStateChange(str: String?) {
         sendBroadCast(str as String)
         sendDataByMessageApi(str)
         mState = str
-        Log.d(TAG_SERVICE, mState)
+        Log.i(TAG_SERVICE, mState)
         when (str) {
             "locked" -> {
                 if (mIsUnlocked == null) {
@@ -109,17 +108,17 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     override fun onUnLocking() {
-        Log.d(TAG_SERVICE, "unlocking")
+        Log.i(TAG_SERVICE, "unlocking")
         sendJson("{\"command\":\"unlock\"}")
     }
 
     override fun onLocking() {
-        Log.d(TAG_SERVICE, "locking")
+        Log.i(TAG_SERVICE, "locking")
         sendJson("{\"command\":\"lock\"}")
     }
 
     override fun onConnecting() {
-        Log.d(TAG_SERVICE, "connecting")
+        Log.i(TAG_SERVICE, "connecting")
         sendJson("{\"uuid\":\"$mId\"}")
     }
 
@@ -130,9 +129,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     private fun sendJson(json: String) {
-        Log.d(TAG_SERVICE, "sendJson")
+        Log.i(TAG_SERVICE, "sendJson")
         connectIfNeeded()
-        Log.d(TAG_SERVICE, mWebSocketClient?.isOpen.toString())
+        Log.i(TAG_SERVICE, mWebSocketClient?.isOpen.toString())
         if (mWebSocketClient?.isOpen as Boolean) {
             mWebSocketClient?.send(json)
         }
@@ -173,7 +172,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     // TODO:状態
     private fun sendBroadCast(state: String) {
-        Log.d(TAG_SERVICE, "sendBroadCastToMainActivity,$state")
+        Log.i(TAG_SERVICE, "sendBroadCastToMainActivity,$state")
         val broadcastIntent: Intent = Intent()
         broadcastIntent.putExtra("state", state)
         broadcastIntent.action = "UPDATE_ACTION"
@@ -181,14 +180,16 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     private fun connectIfNeeded() {
-        Log.d(TAG_SERVICE, "connectIfNeeded")
+        Log.i(TAG_SERVICE, "connectIfNeeded")
         if ((mWebSocketClient == null || (mWebSocketClient as MyWebSocketClient).isClosed)
                 && isConnected()) {
-            Log.d(TAG_SERVICE, "connect")
+            Log.i(TAG_SERVICE, "connect")
             mWebSocketClient = MyWebSocketClient.newInstance()
 
-            val sslContext = SSLContext.getInstance("TLS")
-            sslContext.init(null, null, SecureRandom());
+
+            //val sslContext = SSLContext.getInstance("TLS")
+            //sslContext.init(null, null, null);
+            val sslContext = SSLContext.getDefault()
             mWebSocketClient?.setWebSocketFactory(DefaultSSLWebSocketClientFactory(sslContext))
 
             mWebSocketClient?.setCallbacks(this@MyService)
@@ -197,7 +198,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     private fun disconnect() {
-        Log.d(TAG_SERVICE, "disconnect")
+        Log.i(TAG_SERVICE, "disconnect")
         mWebSocketClient?.close()
         mWebSocketClient = null
     }
@@ -211,7 +212,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG_SERVICE, "created")
+        Log.i(TAG_SERVICE, "created")
         mIsBackground = true
 
         mActivity = MobileActivity()
@@ -251,23 +252,23 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG_SERVICE, "Command Started")
+        Log.i(TAG_SERVICE, "Command Started")
 
         val uuid = intent?.getStringExtra("uuid")
         // TODO: UUID読出
         if (uuid != null) {
-            Log.d(TAG_SERVICE, uuid)
+            Log.i(TAG_SERVICE, uuid)
         }
 
         val sp = PreferenceManager.getDefaultSharedPreferences(this)
         mId = sp?.getString("saveId", null)
         if (mId == null) {
-            Log.d(TAG_SERVICE, "uuid:null")
+            Log.i(TAG_SERVICE, "uuid:null")
             // 端末固有識別番号取得
             mId = uuid
             sp?.edit()?.putString("saveId", mId)?.apply()
         }
-        Log.d(TAG_SERVICE, "uuid:$mId")
+        Log.i(TAG_SERVICE, "uuid:$mId")
 
         // in foreground.
         val extra: String? = intent?.getStringExtra("extra");
@@ -291,7 +292,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG_SERVICE, "destroy")
+        Log.i(TAG_SERVICE, "destroy")
         try {
             // レンジング停止
             mBeaconManager?.stopRangingBeaconsInRegion(mRegion)
@@ -319,7 +320,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     // 領域進入
     override fun didEnterRegion(region: Region) {
-        Log.d(TAG_SERVICE, "Enter Region")
+        Log.i(TAG_SERVICE, "Enter Region")
         makeNotification("Enter Region")
         disconnect()
         connectIfNeeded()
@@ -338,7 +339,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun didExitRegion(region: Region) {
         // レンジング停止
         try {
-            Log.d(TAG_SERVICE, "Exit Region")
+            Log.i(TAG_SERVICE, "Exit Region")
             mBeaconManager?.stopRangingBeaconsInRegion(region)
             makeNotification("Exit Region")
             if (mIsBackground == true) {
@@ -353,7 +354,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
         beacons?.forEach { beacon ->
             // ログの出力
-            Log.d("Beacon", "UUID:" + beacon.id1 + ", Distance:" + beacon.distance + "m"
+            Log.i("Beacon", "UUID:" + beacon.id1 + ", Distance:" + beacon.distance + "m"
                     + ", RSSI:" + beacon.rssi + ", txPower:" + beacon.txPower)
             if (beacon.id1.toString() == MY_SERVICE_UUID && mIsBackground == true) {
                 if (beacon.distance != -1.0 && mIsUnlocked == false) {
@@ -369,16 +370,16 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     // 領域に対する状態が変化
     override fun didDetermineStateForRegion(i: Int, region: Region) {
-        Log.d(TAG_SERVICE, "Determine State: " + i)
+        Log.i(TAG_SERVICE, "Determine State: " + i)
     }
 
     //データを更新
     private fun sendDataByMessageApi(message: String) {
         Thread(Runnable {
-            Log.d(TAG_API, "run")
+            Log.i(TAG_API, "run")
             val nodes = Wearable.NodeApi.getConnectedNodes(mApiClient).await()
             for (node in nodes.nodes) {
-                Log.d(TAG_API, "sendMessageToWear:$message")
+                Log.i(TAG_API, "sendMessageToWear:$message")
                 Wearable.MessageApi
                         .sendMessage(mApiClient, node.id, "/data_comm", message.toByteArray())
             }
@@ -389,13 +390,13 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun onMessageReceived(messageEvents: MessageEvent?) {
         if (messageEvents?.path == "/data_comm2") {
             mReceivedMessageFromWear = String(messageEvents!!.data)
-            Log.d(TAG_SERVICE, "receivedMessage: $mReceivedMessageFromWear")
+            Log.i(TAG_SERVICE, "receivedMessage: $mReceivedMessageFromWear")
 
             // TODO: 取得した内容に応じ処理
             // TODO: 問い合わせ要求時
             if (mReceivedMessageFromWear.equals("getState")) {
                 //TODO: 鍵の情報の取得
-                Log.d(TAG_SERVICE, "getState")
+                Log.i(TAG_SERVICE, "getState")
                 if (mState != null) {
                     sendBroadCast(mState as String)
                     sendDataByMessageApi(mState as String)
@@ -405,19 +406,19 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 }
                 // TODO: 解錠施錠要求時
             } else if (mReceivedMessageFromWear.equals("stateUpdate")) {
-                Log.d(TAG_API, "locking")
+                Log.i(TAG_API, "locking")
                 //TODO: 今のステートに応じて処理する。Wearに結果返すのは解錠施錠時。
                 if (mState.equals("locked")) {
                     //TODO: 開処理リクエスト。
-                    Log.d(TAG_SERVICE, "unlocking");
+                    Log.i(TAG_SERVICE, "unlocking");
                     sendJson("{\"command\":\"unlock\"}")
                 } else if (mState.equals("unlocked")) {
                     //TODO:閉処理リクエスト。
-                    Log.d(TAG_SERVICE, "locking");
+                    Log.i(TAG_SERVICE, "locking");
                     sendJson("{\"command\":\"lock\"}")
                 }
             } else {
-                Log.d("要求", "通ってない")
+                Log.i("要求", "通ってない")
             }
         }
     }
