@@ -12,8 +12,7 @@ class MyBroadcastReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
 
-        val bundle = intent.extras
-        val state = bundle.getString("state")
+        val state = intent.getStringExtra("state")
 
         if (sHandler != null) {
             val msg = Message()
