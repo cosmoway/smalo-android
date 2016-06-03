@@ -8,7 +8,10 @@ class MyBootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action.equals(Intent.ACTION_BOOT_COMPLETED)) {
-            context.startService(Intent(context, MyService::class.java))
+            val packageName = "net.cosmoway.smalo";
+            val className = "net.cosmoway.smalo.MyService"
+            intent.setClassName(packageName, className);
+            context.startService(intent)
         }
     }
 }
