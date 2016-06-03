@@ -11,10 +11,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.*
 import android.preference.PreferenceManager
-import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
@@ -205,19 +203,19 @@ class MobileActivity : Activity(), View.OnClickListener {
                 AlertDialog.Builder(this)
                         .setTitle("確認")
                         .setMessage(MY_APP_NAME + "が正常に動作する為には、電池の最適化の解除が必要です。\n" +
-                                "OKボタンを押すと、アプリ設定画面に移動します。\n" +
-                                "最適化を解除する場合、「バッテリー」をタップし、設定を変更して下さい。" +
+                                "最適化を解除する場合、\n" +
+                                "「設定 -> バッテリー -> バッテリーの使用量 -> その他-> バッテリーの最適化 -> すべてのアプリ -> SMALO」" +
+                                "をタップし、設定を変更して下さい。\n" +
                                 "なお、最適化状態時は、" + MY_APP_NAME + "の動作に影響が発生します。")
                         .setPositiveButton("OK") { dialog, which ->
-                            val intent: Intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                            val uri: Uri = Uri.fromParts("package", getPackageName(), null)
-                            intent.data = uri
-                            startActivity(intent)
+                            //val intent: Intent = Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS)
+                            //val uri: Uri = Uri.fromParts("package", getPackageName(), null)
+                            //intent.data = uri
+                            //startActivity(intent)
                         }.show()
             }
         }
     }
-
 
     private fun requestAccessStoragePermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
