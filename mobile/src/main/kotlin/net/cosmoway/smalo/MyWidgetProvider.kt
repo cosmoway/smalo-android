@@ -9,7 +9,7 @@ class MyWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         // サービスの起動
-        val i: Intent = Intent(context, MyService::class.java);
-        context.startService(i);
+        val i: Intent = Intent(context, MyService::class.java)
+        context.startService(i)
     }
 }

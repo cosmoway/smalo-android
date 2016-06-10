@@ -100,11 +100,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             }
         }
         // AppWidgetの画面更新
-        val widgetViews: RemoteViews = RemoteViews(packageName, R.layout.widget_layout);
-        widgetViews.setTextViewText(R.id.info, str);
-        val widget: ComponentName = ComponentName(this, MyWidgetProvider::class.java);
-        val manager: AppWidgetManager = AppWidgetManager.getInstance(this);
-        manager.updateAppWidget(widget, widgetViews);
+        val widgetViews: RemoteViews = RemoteViews(packageName, R.layout.widget_layout)
+        widgetViews.setTextViewText(R.id.info, str)
+        val widget: ComponentName = ComponentName(this, MyWidgetProvider::class.java)
+        val manager: AppWidgetManager = AppWidgetManager.getInstance(this)
+        manager.updateAppWidget(widget, widgetViews)
     }
 
     override fun onUnLocking() {
@@ -138,7 +138,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     private fun ringTone() {
-        val uri: Uri? = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        val uri: Uri? = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val mp: MediaPlayer = MediaPlayer.create(baseContext, uri)
         mp.isLooping = false
         mp.seekTo(0)
@@ -188,7 +188,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
 
             //val sslContext = SSLContext.getInstance("TLS")
-            //sslContext.init(null, null, null);
+            //sslContext.init(null, null, null)
             val sslContext = SSLContext.getDefault()
             mWebSocketClient?.setWebSocketFactory(DefaultSSLWebSocketClientFactory(sslContext))
 
@@ -205,9 +205,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     private fun isConnected(): Boolean {
         if (!NetworkManager.isConnected(this)) {
-            return false;
+            return false
         }
-        return true;
+        return true
     }
 
     override fun onCreate() {
@@ -271,7 +271,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.i(TAG_SERVICE, "uuid:$mId")
 
         // in foreground.
-        val extra: String? = intent?.getStringExtra("extra");
+        val extra: String? = intent?.getStringExtra("extra")
         if (extra.equals("lock") || extra.equals("unlock")) {
             sendJson("{\"command\":\"$extra\"}")
         } else if (extra.equals("start")) {
@@ -284,9 +284,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         if (mId == null) {
             stopSelf()
         }
-        val notification: Notification = Notification();
-        notification.iconLevel = 0;
-        startForeground(1, notification);
+        val notification: Notification = Notification()
+        notification.iconLevel = 0
+        startForeground(1, notification)
         return START_STICKY
     }
 
@@ -410,11 +410,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 //TODO: 今のステートに応じて処理する。Wearに結果返すのは解錠施錠時。
                 if (mState.equals("locked")) {
                     //TODO: 開処理リクエスト。
-                    Log.i(TAG_SERVICE, "unlocking");
+                    Log.i(TAG_SERVICE, "unlocking")
                     sendJson("{\"command\":\"unlock\"}")
                 } else if (mState.equals("unlocked")) {
                     //TODO:閉処理リクエスト。
-                    Log.i(TAG_SERVICE, "locking");
+                    Log.i(TAG_SERVICE, "locking")
                     sendJson("{\"command\":\"lock\"}")
                 }
             } else {
