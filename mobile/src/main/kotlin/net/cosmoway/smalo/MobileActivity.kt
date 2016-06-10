@@ -55,8 +55,8 @@ class MobileActivity : Activity(), View.OnClickListener {
         private val TAG = "MainActivity"
 
         private val MY_APP_NAME = "SMALO"
-        private val PREFERENCE_INIT = 0;
-        private val PREFERENCE_BOOTED = 1;
+        private val PREFERENCE_INIT = 0
+        private val PREFERENCE_BOOTED = 1
     }
 
     fun setCallback(callback: Callback) {
@@ -87,37 +87,37 @@ class MobileActivity : Activity(), View.OnClickListener {
     }
 
     private fun setState(state: Int) {
-        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        sp.edit().putInt("InitState", state).apply();
-        Log.i(TAG, state.toString());
+        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        sp.edit().putInt("InitState", state).apply()
+        Log.i(TAG, state.toString())
     }
 
     private fun setId(uuid: String) {
-        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        sp.edit().putString("uuid", uuid).apply();
-        Log.i(TAG, uuid);
+        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        sp.edit().putString("uuid", uuid).apply()
+        Log.i(TAG, uuid)
     }
 
     //データ読み出し
     private fun getState(): Int {
         // 読み込み
-        val state: Int;
-        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        state = sp.getInt("InitState", PREFERENCE_INIT);
+        val state: Int
+        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        state = sp.getInt("InitState", PREFERENCE_INIT)
         //ログ表示
-        Log.i(TAG, "state:$state");
-        return state;
+        Log.i(TAG, "state:$state")
+        return state
     }
 
     //データ読み出し
     private fun getId(): String {
         // 読み込み
-        val uuid: String;
-        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        uuid = sp.getString("uuid", null);
+        val uuid: String
+        val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        uuid = sp.getString("uuid", null)
         //ログ表示
-        Log.i(TAG, "UUID:$uuid");
-        return uuid;
+        Log.i(TAG, "UUID:$uuid")
+        return uuid
     }
 
     //TODO: サービスからブロードキャストされ、値を受け取った時に動かしたい内容を書く。
@@ -240,31 +240,31 @@ class MobileActivity : Activity(), View.OnClickListener {
     }
 
     private fun setAnimators() {
-        mAnimatorSet1 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet;
-        mAnimatorSet2 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet;
-        mAnimatorSet3 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet;
-        mAnimatorSet4 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet;
-        mAnimatorSet5 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet;
-        mAnimatorSet6 = AnimatorInflater.loadAnimator(this, R.animator.anim_ontap_button) as AnimatorSet;
-        (mAnimatorSet1 as AnimatorSet).setTarget(mOval1);
-        (mAnimatorSet2 as AnimatorSet).setTarget(mOval2);
-        (mAnimatorSet3 as AnimatorSet).setTarget(mOval3);
-        (mAnimatorSet4 as AnimatorSet).setTarget(mOval4);
-        (mAnimatorSet5 as AnimatorSet).setTarget(mOval5);
-        (mAnimatorSet6 as AnimatorSet).setTarget(mOval1);
-        (mAnimatorSet1 as AnimatorSet).startDelay = 0;
-        (mAnimatorSet2 as AnimatorSet).startDelay = 800;
-        (mAnimatorSet3 as AnimatorSet).startDelay = 1600;
-        (mAnimatorSet4 as AnimatorSet).startDelay = 2400;
-        (mAnimatorSet5 as AnimatorSet).startDelay = 3200;
+        mAnimatorSet1 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet
+        mAnimatorSet2 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet
+        mAnimatorSet3 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet
+        mAnimatorSet4 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet
+        mAnimatorSet5 = AnimatorInflater.loadAnimator(this, R.animator.anim_search) as AnimatorSet
+        mAnimatorSet6 = AnimatorInflater.loadAnimator(this, R.animator.anim_ontap_button) as AnimatorSet
+        (mAnimatorSet1 as AnimatorSet).setTarget(mOval1)
+        (mAnimatorSet2 as AnimatorSet).setTarget(mOval2)
+        (mAnimatorSet3 as AnimatorSet).setTarget(mOval3)
+        (mAnimatorSet4 as AnimatorSet).setTarget(mOval4)
+        (mAnimatorSet5 as AnimatorSet).setTarget(mOval5)
+        (mAnimatorSet6 as AnimatorSet).setTarget(mOval1)
+        (mAnimatorSet1 as AnimatorSet).startDelay = 0
+        (mAnimatorSet2 as AnimatorSet).startDelay = 800
+        (mAnimatorSet3 as AnimatorSet).startDelay = 1600
+        (mAnimatorSet4 as AnimatorSet).startDelay = 2400
+        (mAnimatorSet5 as AnimatorSet).startDelay = 3200
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "この端末は、" + MY_APP_NAME + "に対応しておりません。",
-                    Toast.LENGTH_SHORT).show();
-            finish();
+                    Toast.LENGTH_SHORT).show()
+            finish()
         }
         mReceiver = MyBroadcastReceiver()
         mIntentFilter = IntentFilter()

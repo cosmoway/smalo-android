@@ -30,21 +30,22 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
         // private val MY_SERVICE_NAME = "smalo-dev"
         //private val URL = "https://smalo.cosmoway.net:8443/api/v1/devices"
         private val URL = "https://smalo.cosmoway.net/api/v1/devices"
-        private val TYPE = MediaType.parse("application/json; charset=utf-8")
+        private val TYPE = MediaType.parse("application/json charset=utf-8")
     }
 
     private fun showSnackBar(msg: String) {
         val layout: View = findViewById(R.id.layout_register) as View
-        val snackBar: Snackbar = Snackbar.make(layout, msg, Snackbar.LENGTH_SHORT);
-        val textView: TextView = snackBar.view.findViewById(android.support.design.R.id.snackbar_text) as TextView
-        textView.setTextColor(Color.WHITE);
-        snackBar.show();
+        val snackBar: Snackbar = Snackbar.make(layout, msg, Snackbar.LENGTH_SHORT)
+        val textView: TextView = snackBar.view
+                .findViewById(android.support.design.R.id.snackbar_text) as TextView
+        textView.setTextColor(Color.WHITE)
+        snackBar.show()
     }
 
     private fun getRequest(url: String, json: String) {
         object : AsyncTask<Void?, Void?, String?>() {
             override fun doInBackground(vararg params: Void?): String? {
-                val body: RequestBody = RequestBody.create(TYPE, json);
+                val body: RequestBody = RequestBody.create(TYPE, json)
                 val result: String
                 // リクエストオブジェクトを作って
                 val request: Request = Request
@@ -56,12 +57,12 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
                 val spec = ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
                         .allEnabledTlsVersions()
                         .allEnabledCipherSuites()
-                        .build();
+                        .build()
 
                 // クライアントオブジェクトを作って
                 val client: OkHttpClient = OkHttpClient.Builder()
                         .connectionSpecs(Collections.singletonList(spec))
-                        .build();
+                        .build()
 
                 // リクエストして結果を受け取って
                 try {
@@ -81,7 +82,8 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
                     Log.d("RegisterActivity", result)
                     if (result.equals("204")) {
                         showSnackBar("正常に登録されました。")
-                        val intent: Intent = Intent(this@RegisterActivity, MobileActivity::class.java)
+                        val intent: Intent = Intent(this@RegisterActivity,
+                                MobileActivity::class.java)
                         intent.putExtra("bootState", 1)
                         intent.putExtra("uuid", mId)
                         startActivity(intent)
