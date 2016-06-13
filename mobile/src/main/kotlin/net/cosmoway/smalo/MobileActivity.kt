@@ -268,7 +268,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         }
         mReceiver = MyBroadcastReceiver()
         mIntentFilter = IntentFilter()
-        (mIntentFilter as IntentFilter).addAction("UPDATE_ACTION")
+        mIntentFilter?.addAction("net.cosmoway.smalo.action.UPDATE_ACTION")
         registerReceiver(mReceiver, mIntentFilter)
         mReceiver?.registerHandler(updateHandler)
         Log.i(TAG, "Created")
