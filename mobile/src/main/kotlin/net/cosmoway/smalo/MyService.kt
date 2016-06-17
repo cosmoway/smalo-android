@@ -57,6 +57,8 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         private val TAG_API = "API"
         private val MY_SERVICE_UUID = "51a4a738-62b8-4b26-a929-3bbac2a5ce7c"
         private val MY_APP_NAME = "SMALO"
+        val FLAG_START = "start"
+        val FLAG_STOP = "stop"
     }
 
     override fun connectionOpen() {
@@ -271,11 +273,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         val extra: String? = intent?.getStringExtra("extra")
         if (extra.equals("lock") || extra.equals("unlock")) {
             sendJson("{\"command\":\"$extra\"}")
-        } else if (extra.equals("start")) {
+        } else if (extra.equals(FLAG_START)) {
             mIsBackground = false
             disconnect()
             connectIfNeeded()
-        } else if (extra.equals("stop")) {
+        } else if (extra.equals(FLAG_STOP)) {
             mIsBackground = true
         }
         if (mId == null) {

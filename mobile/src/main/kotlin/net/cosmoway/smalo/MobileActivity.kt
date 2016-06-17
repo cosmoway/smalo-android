@@ -301,7 +301,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         Log.i(TAG, "Stopped")
         if (getState() == PREFERENCE_BOOTED) {
             val intent: Intent = Intent(this, MyService::class.java)
-            intent.putExtra("extra", "stop")
+            intent.putExtra("extra", MyService.FLAG_STOP)
             startService(intent)
         }
     }
@@ -324,7 +324,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                     }
                 }
                 val intent: Intent = Intent(this, MyService::class.java)
-                intent.putExtra("extra", "start")
+                intent.putExtra("extra", MyService.FLAG_STOP)
                 if (!getId().isNullOrEmpty()) {
                     intent.putExtra("uuid", getId())
                 }
