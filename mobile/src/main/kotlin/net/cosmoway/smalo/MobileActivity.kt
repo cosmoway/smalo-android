@@ -324,7 +324,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                     }
                 }
                 val intent: Intent = Intent(this, MyService::class.java)
-                intent.putExtra("extra", MyService.FLAG_STOP)
+                intent.putExtra("extra", MyService.FLAG_START)
                 if (!getId().isNullOrEmpty()) {
                     intent.putExtra("uuid", getId())
                 }
