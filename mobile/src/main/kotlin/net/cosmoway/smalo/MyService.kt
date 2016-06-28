@@ -45,6 +45,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     // MyWebSocketClient
     private var mWebSocketClient: MyWebSocketClient? = null
     private var mIsBackground: Boolean? = null
+    private var mIsEnterRegion: Boolean? = null
     private var mApiClient: GoogleApiClient? = null
     private var mIsUnlocked: Boolean? = null
     private var mReceivedMessageFromWear: String? = null
@@ -304,6 +305,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         disconnect()
         stopForeground(true)
     }
+
     //Beaconサービスの接続と開始
     override fun onBeaconServiceConnect() {
         //領域監視の設定
@@ -315,12 +317,14 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             e.printStackTrace()
         }
     }
+
     // 領域進入
     override fun didEnterRegion(region: Region) {
         Log.i(TAG_SERVICE, "Enter Region")
         makeNotification("Enter Region")
         disconnect()
         connectIfNeeded()
+        mIsEnterRegion = true
 
         // レンジング開始
         try {
@@ -343,6 +347,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 disconnect()
                 mIsUnlocked = null
             }
+            mIsEnterRegion = false
         } catch (e: RemoteException) {
             e.printStackTrace()
         }
@@ -353,8 +358,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             // ログの出力
             Log.i("Beacon", "UUID:" + beacon.id1 + ", Distance:" + beacon.distance + "m"
                     + ", RSSI:" + beacon.rssi + ", txPower:" + beacon.txPower)
+            Log.i(TAG_SERVICE, mIsEnterRegion.toString())
             if (beacon.id1.toString() == MY_SERVICE_UUID && mIsBackground == true) {
-                if (beacon.distance != -1.0 && mIsUnlocked == false) {
+                if (beacon.distance != -1.0 && mIsUnlocked == false && mIsEnterRegion == true) {
                     // TODO:解錠リクエスト
                     sendJson("{\"command\":\"unlock\"}")
                     mIsUnlocked = true
