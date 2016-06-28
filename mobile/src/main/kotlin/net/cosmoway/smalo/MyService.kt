@@ -9,6 +9,7 @@ import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.os.PowerManager
 import android.os.RemoteException
 import android.preference.PreferenceManager
@@ -25,6 +26,7 @@ import org.altbeacon.beacon.*
 import org.altbeacon.beacon.startup.BootstrapNotifier
 import org.altbeacon.beacon.startup.RegionBootstrap
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory
+import java.util.*
 import javax.net.ssl.SSLContext
 
 class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, RangeNotifier,
@@ -51,6 +53,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     private var mReceivedMessageFromWear: String? = null
     // UUID設定用
     private var mId: String? = null
+    // タイマ
+    private var mTimer: Timer? = null
+    private var mHandler: Handler? = null
 
 
     companion object {
@@ -324,7 +329,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         makeNotification("Enter Region")
         disconnect()
         connectIfNeeded()
-        mIsEnterRegion = true
+        // タイマを止める
+        mTimer?.cancel()
+        if (mIsEnterRegion == null) {
+            mIsEnterRegion = true
+        }
 
         // レンジング開始
         try {
@@ -348,6 +357,8 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 mIsUnlocked = null
             }
             mIsEnterRegion = false
+            // タイマを動かす
+            startTimer()
         } catch (e: RemoteException) {
             e.printStackTrace()
         }
@@ -374,6 +385,20 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     // 領域に対する状態が変化
     override fun didDetermineStateForRegion(i: Int, region: Region) {
         Log.i(TAG_SERVICE, "Determine State: " + i)
+    }
+
+    private fun startTimer() {
+        mTimer = Timer()
+        mHandler = Handler()
+        Log.v(TAG_SERVICE, "start_timer")
+        mTimer?.schedule(object : TimerTask() {
+            override fun run() {
+                mHandler?.post {
+                    // TODO: 処理の中身。
+                    mIsEnterRegion = null
+                }
+            }
+        }, 300000)
     }
 
     //データを更新
