@@ -1,5 +1,8 @@
 package net.cosmoway.smalo
 
+import android.Manifest
+import android.animation.AnimatorInflater
+import android.animation.AnimatorSet
 import android.app.Activity
 import android.app.Notification
 import android.app.PendingIntent
@@ -184,7 +187,7 @@ class MobileActivity : Activity(), View.OnClickListener {
 
     private fun requestLocationPermission() {
         // TODO: 位置情報サーヴィス を利用可能か
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
