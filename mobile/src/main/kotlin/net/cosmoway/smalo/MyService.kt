@@ -159,7 +159,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         builder.setContentTitle(title) // 1行目
         if (title.equals("Enter Region")) {
             builder.setContentText("領域に入りました。")
-        } else if (title == "Exit Region") {
+        } else if (title.equals("Exit Region")) {
             builder.setContentText("領域から出ました。")
         }
         builder.setContentIntent(contentIntent)
