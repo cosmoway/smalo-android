@@ -31,6 +31,7 @@ class MyBroadcastReceiver : BroadcastReceiver() {
     }
 
     companion object {
+        // FIXME: static になっているので、複数の箇所でこの Receiver を利用したい場合にバグが発生しそう
         var sHandler: Handler? = null
     }
 }

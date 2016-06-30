@@ -31,6 +31,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         MonitorNotifier, MyWebSocketClient.MyCallbacks, MobileActivity.Callback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    // FIXME: もう不要？
     private var mActivity: MobileActivity? = null
 
     // BGで監視するiBeacon領域
@@ -58,6 +59,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         private val TAG_API = "API"
         private val MY_SERVICE_UUID = "51a4a738-62b8-4b26-a929-3bbac2a5ce7c"
         private val MY_APP_NAME = "SMALO"
+        // FIXME: `FLAG_START`,`FLAG_STOP` の名前変更。MyService 単独で分かる名前に
         val FLAG_START = "start"
         val FLAG_STOP = "stop"
     }
@@ -129,6 +131,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             connectIfNeeded()
     }
 
+    // FIXME: sendJson の呼び出し方が冗長。sendJson を直接呼ぶのではなく1クッションいれたい
     private fun sendJson(json: String) {
         Log.i(TAG_SERVICE, "sendJson")
         connectIfNeeded()
@@ -158,6 +161,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 notificationIntent, 0)
 
         builder.setContentTitle(title) // 1行目
+        // FIXME: タイトルの文字で判断するのはバグを生む危険有り（タイトルを変えたとき、ここも変更する必要があることに気付けるか）
         if (title.equals("Enter Region")) {
             builder.setContentText("領域に入りました。")
         } else if (title.equals("Exit Region")) {
@@ -172,10 +176,13 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     // TODO:状態
+    // FIXME: `BroadCast` -> `Broadcast`
     private fun sendBroadCast(state: String) {
         Log.i(TAG_SERVICE, "sendBroadCastToMainActivity,$state")
+        // FIXME: `: Intent` は不要
         val broadcastIntent: Intent = Intent()
         broadcastIntent.putExtra("state", state)
+        // FIXME: "UPDATE_ACTION" を定数化。さらにパッケージ名を含む文字列にする
         broadcastIntent.action = "UPDATE_ACTION"
         baseContext.sendBroadcast(broadcastIntent)
     }
@@ -193,6 +200,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             val sslContext = SSLContext.getDefault()
             mWebSocketClient?.setWebSocketFactory(DefaultSSLWebSocketClientFactory(sslContext))
 
+            // FIXME: @MyService は不要？
             mWebSocketClient?.setCallbacks(this@MyService)
             mWebSocketClient?.connect()
         }
@@ -216,6 +224,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.i(TAG_SERVICE, "created")
         mIsBackground = true
 
+        // FIXME: Activity インスタンスを直接生成するのはNG
         mActivity = MobileActivity()
         mActivity?.setCallback(this)
         //BTMのインスタンス化
@@ -226,6 +235,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         val identifier: Identifier = Identifier.parse(MY_SERVICE_UUID)
 
         // Beacon名の作成
+        // FIXME: @MyService は不要？
         val beaconId = this@MyService.packageName
         // major, minorの指定はしない
         mRegion = Region(beaconId, identifier, null, null)
@@ -254,6 +264,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.i(TAG_SERVICE, "Command Started")
 
+        // FIXME: "uuid" の定数化
         val uuid = intent?.getStringExtra("uuid")
         // TODO: UUID読出
         if (uuid != null) {
@@ -271,6 +282,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.i(TAG_SERVICE, "uuid:$mId")
 
         // in foreground.
+        // FIXME: "extra","lock","unlock" の定数化
         val extra: String? = intent?.getStringExtra("extra")
         if (extra.equals("lock") || extra.equals("unlock")) {
             sendJson("{\"command\":\"$extra\"}")
