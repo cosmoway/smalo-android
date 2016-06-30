@@ -324,7 +324,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         makeNotification("Enter Region")
         disconnect()
         connectIfNeeded()
-        mIsEnterRegion = true
+        if (mIsBackground == true) {
+            mIsEnterRegion = true
+        }
 
         // レンジング開始
         try {
@@ -358,7 +360,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             // ログの出力
             Log.i("Beacon", "UUID:" + beacon.id1 + ", Distance:" + beacon.distance + "m"
                     + ", RSSI:" + beacon.rssi + ", txPower:" + beacon.txPower)
-            Log.i(TAG_SERVICE, mIsEnterRegion.toString())
+            Log.i(TAG_SERVICE, "enter:${mIsEnterRegion.toString()}")
             if (beacon.id1.toString() == MY_SERVICE_UUID && mIsBackground == true) {
                 if (beacon.distance != -1.0 && mIsUnlocked == false && mIsEnterRegion == true) {
                     // TODO:解錠リクエスト
