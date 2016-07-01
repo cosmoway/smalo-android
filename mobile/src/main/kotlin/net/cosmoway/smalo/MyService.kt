@@ -214,7 +214,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun onCreate() {
         super.onCreate()
         Log.i(TAG_SERVICE, "created")
-        mIsBackground = true
 
         mActivity = MobileActivity()
         mActivity?.setCallback(this)
@@ -348,6 +347,8 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             if (mIsBackground == true) {
                 disconnect()
                 mIsUnlocked = null
+            } else if (mIsBackground == null) {
+                mIsBackground = true
             }
             mIsEnterRegion = false
         } catch (e: RemoteException) {
@@ -360,7 +361,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             // ログの出力
             Log.i("Beacon", "UUID:" + beacon.id1 + ", Distance:" + beacon.distance + "m"
                     + ", RSSI:" + beacon.rssi + ", txPower:" + beacon.txPower)
-            Log.i(TAG_SERVICE, "enter:${mIsEnterRegion.toString()}")
+            Log.i(TAG_SERVICE, "state: ${mIsBackground.toString()}, enter:${mIsEnterRegion.toString()}")
             if (beacon.id1.toString() == MY_SERVICE_UUID && mIsBackground == true) {
                 if (beacon.distance != -1.0 && mIsUnlocked == false && mIsEnterRegion == true) {
                     // TODO:解錠リクエスト
