@@ -31,9 +31,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         MonitorNotifier, MyWebSocketClient.MyCallbacks, MobileActivity.Callback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    // FIXME: もう不要？
-    private var mActivity: MobileActivity? = null
-
     // BGで監視するiBeacon領域
     private var mRegionBootstrap: RegionBootstrap? = null
     // iBeacon検知用のマネージャー
@@ -224,9 +221,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.i(TAG_SERVICE, "created")
         mIsBackground = true
 
-        // FIXME: Activity インスタンスを直接生成するのはNG
-        mActivity = MobileActivity()
-        mActivity?.setCallback(this)
         //BTMのインスタンス化
         mBeaconManager = BeaconManager.getInstanceForApplication(this)
         //Parserの設定
