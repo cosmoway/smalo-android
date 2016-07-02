@@ -55,7 +55,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         private val TAG_SERVICE = "MyService"
         private val TAG_API = "API"
         private val MY_SERVICE_UUID = "51a4a738-62b8-4b26-a929-3bbac2a5ce7c"
-        private val MY_APP_NAME = "SMALO"
         // FIXME: `FLAG_START`,`FLAG_STOP` の名前変更。MyService 単独で分かる名前に
         val FLAG_START = "start"
         val FLAG_STOP = "stop"
@@ -165,7 +164,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             builder.setContentText("領域から出ました。")
         }
         builder.setContentIntent(contentIntent)
-        builder.setTicker(MY_APP_NAME) // 通知到着時に通知バーに表示(4.4まで)
+        builder.setTicker(getString(R.string.app_name)) // 通知到着時に通知バーに表示(4.4まで)
         // 5.0からは表示されない
 
         val manager = NotificationManagerCompat.from(applicationContext)
