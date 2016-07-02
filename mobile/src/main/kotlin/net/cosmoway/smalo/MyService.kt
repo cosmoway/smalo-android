@@ -61,7 +61,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     override fun connectionOpen() {
-        sendJson("{\"uuid\":\"$mId\"}")
+        sendUuid(mId)
     }
 
     override fun onConnected(bundle: Bundle?) {
@@ -108,17 +108,17 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     override fun onUnLocking() {
         Log.i(TAG_SERVICE, "unlocking")
-        sendJson("{\"command\":\"unlock\"}")
+        sendUnlockSignal()
     }
 
     override fun onLocking() {
         Log.i(TAG_SERVICE, "locking")
-        sendJson("{\"command\":\"lock\"}")
+        sendLockSignal()
     }
 
     override fun onConnecting() {
         Log.i(TAG_SERVICE, "connecting")
-        sendJson("{\"uuid\":\"$mId\"}")
+        sendUuid(mId)
     }
 
     override fun error(ex: Exception) {
@@ -127,7 +127,20 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             connectIfNeeded()
     }
 
-    // FIXME: sendJson の呼び出し方が冗長。sendJson を直接呼ぶのではなく1クッションいれたい
+    private fun sendUuid(uuid: String?) {
+        uuid?.let {
+            sendJson("{\"uuid\":\"$it\"}")
+        }
+    }
+
+    private fun sendLockSignal() {
+        sendJson("{\"command\":\"lock\"}")
+    }
+
+    private fun sendUnlockSignal() {
+        sendJson("{\"command\":\"unlock\"}")
+    }
+
     private fun sendJson(json: String) {
         Log.i(TAG_SERVICE, "sendJson")
         connectIfNeeded()
@@ -277,8 +290,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         // in foreground.
         // FIXME: "extra","lock","unlock" の定数化
         val extra: String? = intent?.getStringExtra("extra")
-        if (extra.equals("lock") || extra.equals("unlock")) {
-            sendJson("{\"command\":\"$extra\"}")
+        if (extra.equals("lock")) {
+            sendLockSignal()
+        } else if (extra.equals("unlock")) {
+            sendUnlockSignal()
         } else if (extra.equals(FLAG_START)) {
             mIsBackground = false
             disconnect()
@@ -369,7 +384,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             if (beacon.id1.toString() == MY_SERVICE_UUID && mIsBackground == true) {
                 if (beacon.distance != -1.0 && mIsUnlocked == false && mIsEnterRegion == true) {
                     // TODO:解錠リクエスト
-                    sendJson("{\"command\":\"unlock\"}")
+                    sendUnlockSignal()
                     mIsUnlocked = true
                 } else if (mIsUnlocked == null) {
                     connectIfNeeded()
@@ -421,11 +436,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 if (mState.equals("locked")) {
                     //TODO: 開処理リクエスト。
                     Log.i(TAG_SERVICE, "unlocking")
-                    sendJson("{\"command\":\"unlock\"}")
+                    sendUnlockSignal()
                 } else if (mState.equals("unlocked")) {
                     //TODO:閉処理リクエスト。
                     Log.i(TAG_SERVICE, "locking")
-                    sendJson("{\"command\":\"lock\"}")
+                    sendLockSignal()
                 }
             } else {
                 Log.i("要求", "通ってない")
