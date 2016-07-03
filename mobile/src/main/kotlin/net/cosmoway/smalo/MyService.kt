@@ -63,6 +63,8 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         val EXTRA_EXTRA = "extra"
         val EXTRA_UUID = "uuid"
         val EXTRA_STATE = "state"
+        val COMMAND_LOCK = "lock"
+        val COMMAND_UNLOCK = "unlock"
     }
 
     override fun connectionOpen() {
@@ -287,11 +289,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.i(TAG_SERVICE, "uuid:$mId")
 
         // in foreground.
-        // FIXME: "lock","unlock" の定数化
         val extra: String? = intent?.getStringExtra(MyService.EXTRA_EXTRA)
-        if (extra.equals("lock")) {
+        if (extra.equals(MyService.COMMAND_LOCK)) {
             sendLockSignal()
-        } else if (extra.equals("unlock")) {
+        } else if (extra.equals(MyService.COMMAND_UNLOCK)) {
             sendUnlockSignal()
         } else if (extra.equals(FLAG_START)) {
             mIsBackground = false

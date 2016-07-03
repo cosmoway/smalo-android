@@ -368,14 +368,14 @@ class MobileActivity : Activity(), View.OnClickListener {
             if (mState != null) {
                 animationEnd()
                 Log.i(TAG, mCallback.toString())
-                // FIXME: "locked","unlocked","lock","unlock" の定数化
+                // FIXME: "locked","unlocked" の定数化
                 if (mState.equals("locked")) {
                     val intent: Intent = Intent(this, MyService::class.java)
-                    intent.putExtra(MyService.EXTRA_EXTRA, "unlock")
+                    intent.putExtra(MyService.EXTRA_EXTRA, MyService.COMMAND_UNLOCK)
                     startService(intent)
                 } else if (mState.equals("unlocked")) {
                     val intent: Intent = Intent(this, MyService::class.java)
-                    intent.putExtra(MyService.EXTRA_EXTRA, "lock")
+                    intent.putExtra(MyService.EXTRA_EXTRA, MyService.COMMAND_LOCK)
                     startService(intent)
                 }
             }
