@@ -207,8 +207,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             val sslContext = SSLContext.getDefault()
             mWebSocketClient?.setWebSocketFactory(DefaultSSLWebSocketClientFactory(sslContext))
 
-            // FIXME: @MyService は不要？
-            mWebSocketClient?.setCallbacks(this@MyService)
+            mWebSocketClient?.setCallbacks(this)
             mWebSocketClient?.connect()
         }
     }
@@ -239,8 +238,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         val identifier: Identifier = Identifier.parse(MY_SERVICE_UUID)
 
         // Beacon名の作成
-        // FIXME: @MyService は不要？
-        val beaconId = this@MyService.packageName
+        val beaconId = this.packageName
         // major, minorの指定はしない
         mRegion = Region(beaconId, identifier, null, null)
         mRegionBootstrap = RegionBootstrap(this, mRegion)
