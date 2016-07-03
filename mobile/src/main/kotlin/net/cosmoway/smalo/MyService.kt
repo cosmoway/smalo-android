@@ -59,6 +59,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         val FLAG_START = "start"
         val FLAG_STOP = "stop"
         val ACTION_UPDATE = "net.cosmoway.smalo.action.UPDATE"
+        // FIXME: 名前の変更をすべき(lock, unlock を受け取るもの)
+        val EXTRA_EXTRA = "extra"
+        val EXTRA_UUID = "uuid"
+        val EXTRA_STATE = "state"
     }
 
     override fun connectionOpen() {
@@ -189,7 +193,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     private fun sendBroadcast(state: String) {
         Log.i(TAG_SERVICE, "sendBroadCastToMainActivity,$state")
         val broadcastIntent = Intent()
-        broadcastIntent.putExtra("state", state)
+        broadcastIntent.putExtra(MyService.EXTRA_STATE, state)
         broadcastIntent.action = MyService.ACTION_UPDATE
         baseContext.sendBroadcast(broadcastIntent)
     }
@@ -266,8 +270,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.i(TAG_SERVICE, "Command Started")
 
-        // FIXME: "uuid" の定数化
-        val uuid = intent?.getStringExtra("uuid")
+        val uuid = intent?.getStringExtra(MyService.EXTRA_UUID)
         // TODO: UUID読出
         if (uuid != null) {
             Log.i(TAG_SERVICE, uuid)
@@ -284,8 +287,8 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.i(TAG_SERVICE, "uuid:$mId")
 
         // in foreground.
-        // FIXME: "extra","lock","unlock" の定数化
-        val extra: String? = intent?.getStringExtra("extra")
+        // FIXME: "lock","unlock" の定数化
+        val extra: String? = intent?.getStringExtra(MyService.EXTRA_EXTRA)
         if (extra.equals("lock")) {
             sendLockSignal()
         } else if (extra.equals("unlock")) {

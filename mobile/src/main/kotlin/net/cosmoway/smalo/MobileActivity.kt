@@ -60,6 +60,8 @@ class MobileActivity : Activity(), View.OnClickListener {
         private val MY_APP_NAME = "SMALO"
         private val PREFERENCE_INIT = 0
         private val PREFERENCE_BOOTED = 1
+        val EXTRA_BOOT_STATE = "bootState"
+        val EXTRA_UUID = "uuid"
     }
 
     fun setCallback(callback: Callback) {
@@ -281,8 +283,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         registerReceiver(mReceiver, mIntentFilter)
         mReceiver?.registerHandler(updateHandler)
         Log.i(TAG, "Created")
-        // FIXME: "bootState" を定数化したい。冗長
-        val state: Int? = intent?.getIntExtra("bootState", 0)
+        val state: Int? = intent?.getIntExtra(EXTRA_BOOT_STATE, 0)
         if (state == PREFERENCE_BOOTED) {
             setState(state)
         }
@@ -312,7 +313,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         Log.i(TAG, "Stopped")
         if (getState() == PREFERENCE_BOOTED) {
             val intent: Intent = Intent(this, MyService::class.java)
-            intent.putExtra("extra", MyService.FLAG_STOP)
+            intent.putExtra(MyService.EXTRA_EXTRA, MyService.FLAG_STOP)
             startService(intent)
         }
     }
@@ -328,17 +329,16 @@ class MobileActivity : Activity(), View.OnClickListener {
                 finish()
             }
             PREFERENCE_BOOTED -> {
-                // FIXME: "uuid" を定数化したい。冗長
-                if (intent.getStringExtra("uuid") != null) {
-                    val uuid: String = intent.getStringExtra("uuid")
+                if (intent.getStringExtra(MyService.EXTRA_UUID) != null) {
+                    val uuid: String = intent.getStringExtra(MyService.EXTRA_UUID)
                     if (!uuid.isNullOrEmpty()) {
                         setId(uuid)
                     }
                 }
                 val intent: Intent = Intent(this, MyService::class.java)
-                intent.putExtra("extra", MyService.FLAG_START)
+                intent.putExtra(MyService.EXTRA_EXTRA, MyService.FLAG_START)
                 if (!getId().isNullOrEmpty()) {
-                    intent.putExtra("uuid", getId())
+                    intent.putExtra(MyService.EXTRA_UUID, getId())
                 }
                 startService(intent)
             }
@@ -368,14 +368,14 @@ class MobileActivity : Activity(), View.OnClickListener {
             if (mState != null) {
                 animationEnd()
                 Log.i(TAG, mCallback.toString())
-                // FIXME: "locked","unlocked","lock","unlock","extra" の定数化
+                // FIXME: "locked","unlocked","lock","unlock" の定数化
                 if (mState.equals("locked")) {
                     val intent: Intent = Intent(this, MyService::class.java)
-                    intent.putExtra("extra", "unlock")
+                    intent.putExtra(MyService.EXTRA_EXTRA, "unlock")
                     startService(intent)
                 } else if (mState.equals("unlocked")) {
                     val intent: Intent = Intent(this, MyService::class.java)
-                    intent.putExtra("extra", "lock")
+                    intent.putExtra(MyService.EXTRA_EXTRA, "lock")
                     startService(intent)
                 }
             }
