@@ -58,6 +58,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         // FIXME: `FLAG_START`,`FLAG_STOP` の名前変更。MyService 単独で分かる名前に
         val FLAG_START = "start"
         val FLAG_STOP = "stop"
+        val ACTION_UPDATE = "net.cosmoway.smalo.action.UPDATE"
     }
 
     override fun connectionOpen() {
@@ -77,7 +78,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     override fun onStateChange(str: String?) {
-        sendBroadCast(str as String)
+        sendBroadcast(str as String)
         sendDataByMessageApi(str)
         mState = str
         Log.i(TAG_SERVICE, mState)
@@ -185,14 +186,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     // TODO:状態
-    // FIXME: `BroadCast` -> `Broadcast`
-    private fun sendBroadCast(state: String) {
+    private fun sendBroadcast(state: String) {
         Log.i(TAG_SERVICE, "sendBroadCastToMainActivity,$state")
-        // FIXME: `: Intent` は不要
-        val broadcastIntent: Intent = Intent()
+        val broadcastIntent = Intent()
         broadcastIntent.putExtra("state", state)
-        // FIXME: "UPDATE_ACTION" を定数化。さらにパッケージ名を含む文字列にする
-        broadcastIntent.action = "UPDATE_ACTION"
+        broadcastIntent.action = MyService.ACTION_UPDATE
         baseContext.sendBroadcast(broadcastIntent)
     }
 
@@ -423,10 +421,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 //TODO: 鍵の情報の取得
                 Log.i(TAG_SERVICE, "getState")
                 if (mState != null) {
-                    sendBroadCast(mState as String)
+                    sendBroadcast(mState as String)
                     sendDataByMessageApi(mState as String)
                 } else {
-                    sendBroadCast("unknown")
+                    sendBroadcast("unknown")
                     sendDataByMessageApi("unknown")
                 }
                 // TODO: 解錠施錠要求時

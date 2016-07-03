@@ -277,7 +277,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         }
         mReceiver = MyBroadcastReceiver()
         mIntentFilter = IntentFilter()
-        mIntentFilter?.addAction("UPDATE_ACTION")
+        mIntentFilter?.addAction(MyService.ACTION_UPDATE)
         registerReceiver(mReceiver, mIntentFilter)
         mReceiver?.registerHandler(updateHandler)
         Log.i(TAG, "Created")
