@@ -7,11 +7,11 @@ import android.app.Activity
 import android.app.Notification
 import android.app.PendingIntent
 import android.bluetooth.BluetoothAdapter
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.SharedPreferences
+import android.content.*
 import android.content.pm.PackageManager
-import android.os.*
+import android.os.Build
+import android.os.Bundle
+import android.os.PowerManager
 import android.preference.PreferenceManager
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.NotificationManagerCompat
@@ -38,7 +38,6 @@ class MobileActivity : Activity(), View.OnClickListener {
     private var mReceiver: MyBroadcastReceiver? = null
     private var mCallback: Callback? = null
     private var mState: String? = null
-    private var mIntentFilter: IntentFilter? = null
     private var mLockButton: ImageButton? = null
     private var mBackground: LinearLayout? = null
     private var mAnimatorSet1: AnimatorSet? = null
@@ -123,8 +122,40 @@ class MobileActivity : Activity(), View.OnClickListener {
         return uuid
     }
 
+    /* Receiver内*/
+    inner class MyBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            mState = intent.getStringExtra("state")
+            if (mState.equals("locked")) {
+                makeNotification("施錠されました。")
+                Log.i(TAG, "message:L")
+                setColor(R.drawable.bg_grad_main, R.drawable.oval)
+                mLockButton?.isClickable = true
+                animationEnd()
+                mLockButton?.setImageResource(R.drawable.smalo_close_button)
+                mLockButton?.isEnabled = true
+            } else if (mState.equals("unlocked")) {
+                makeNotification("解錠されました。")
+                Log.i(TAG, "message:UL")
+                setColor(R.drawable.bg_grad_unlocked, R.drawable.oval_unlocked)
+                mLockButton?.isClickable = true
+                animationEnd()
+                mLockButton?.setImageResource(R.drawable.smalo_open_button)
+                mLockButton?.isEnabled = true
+            } else if (mState.equals("unknown")) {
+                Log.i(TAG, "message:UK")
+                setColor(R.drawable.bg_grad_main, R.drawable.oval)
+                mLockButton?.isClickable = false
+                animationEnd()
+                mLockButton?.setImageResource(R.drawable.smalo_search_icon)
+                mLockButton?.isEnabled = false
+                animationStart()
+            }
+        }
+    }
+
     //TODO: サービスからブロードキャストされ、値を受け取った時に動かしたい内容を書く。
-    private val updateHandler = object : Handler() {
+    /*private val updateHandler = object : Handler() {
         override fun handleMessage(msg: Message) {
             val bundle = msg.data
             mState = bundle.getString("state")
@@ -154,7 +185,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                 animationStart()
             }
         }
-    }
+    }*/
 
     private fun setColor(bg: Int, oval: Int) {
         mBackground?.setBackgroundResource(bg)
@@ -269,11 +300,12 @@ class MobileActivity : Activity(), View.OnClickListener {
                     Toast.LENGTH_SHORT).show()
             finish()
         }
+
         mReceiver = MyBroadcastReceiver()
-        mIntentFilter = IntentFilter()
-        mIntentFilter?.addAction("UPDATE_ACTION")
-        registerReceiver(mReceiver, mIntentFilter)
-        mReceiver?.registerHandler(updateHandler)
+        val intentFilter = IntentFilter()
+        intentFilter.addAction("UPDATE_ACTION")
+        registerReceiver(mReceiver, intentFilter)
+
         Log.i(TAG, "Created")
         val state: Int? = intent?.getIntExtra("bootState", 0)
         if (state == PREFERENCE_BOOTED) {
