@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.media.RingtoneManager
@@ -277,7 +278,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             mIsBackground = false
             disconnect()
             connectIfNeeded()
-        } else if (extra.equals(FLAG_STOP)) {
+        } else if (extra.equals(FLAG_STOP) || mIsBackground == null && getRegionState() == 0) {
             mIsBackground = true
         }
         if (mId == null) {
@@ -302,6 +303,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         mBeaconManager = null
         mWakeLock?.release()
         disconnect()
+        setRegionState(-1)
         stopForeground(true)
     }
 
@@ -323,6 +325,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         makeNotification("Enter Region")
         disconnect()
         connectIfNeeded()
+        setRegionState(1)
         if (mIsBackground == true) {
             mIsEnterRegion = true
         }
@@ -351,6 +354,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 mIsBackground = true
             }
             mIsEnterRegion = false
+            setRegionState(0)
         } catch (e: RemoteException) {
             e.printStackTrace()
         }
@@ -361,7 +365,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             // ログの出力
             Log.i("Beacon", "UUID:" + beacon.id1 + ", Distance:" + beacon.distance + "m"
                     + ", RSSI:" + beacon.rssi + ", txPower:" + beacon.txPower)
-            Log.i(TAG_SERVICE, "state: ${mIsBackground.toString()}, enter:${mIsEnterRegion.toString()}")
+            Log.i(TAG_SERVICE, "state: ${mIsBackground.toString()}, enter:${mIsEnterRegion.toString()}, stateInt:${getRegionState().toString()}")
             if (beacon.id1.toString() == MY_SERVICE_UUID && mIsBackground == true) {
                 if (beacon.distance != -1.0 && mIsUnlocked == false && mIsEnterRegion == true) {
                     // TODO:解錠リクエスト
@@ -372,6 +376,18 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 }
             }
         }
+    }
+
+    private fun setRegionState(regionState: Int) {
+        val sp = getSharedPreferences("pref", Context.MODE_PRIVATE);
+        val editor = sp.edit();
+        editor.putInt("RegionState", regionState).apply()
+    }
+
+    private fun getRegionState(): Int {
+        val sp = getSharedPreferences("pref", Context.MODE_PRIVATE);
+        val regionState = sp.getInt("RegionState", -1);
+        return regionState
     }
 
     // 領域に対する状態が変化
