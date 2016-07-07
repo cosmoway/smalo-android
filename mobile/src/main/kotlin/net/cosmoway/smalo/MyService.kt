@@ -316,7 +316,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         try {
             // レンジング停止
             mBeaconManager?.stopRangingBeaconsInRegion(mRegion)
-            mBeaconManager?.stopMonitoringBeaconsInRegion(mRegion)
+            // mBeaconManager?.stopMonitoringBeaconsInRegion(mRegion)
         } catch (e: RemoteException) {
             e.printStackTrace()
         }
@@ -333,7 +333,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         mBeaconManager?.setMonitorNotifier(this)
         try {
             // ビーコン情報の監視を開始
-            mBeaconManager?.startMonitoringBeaconsInRegion(mRegion)
+            // mBeaconManager?.startMonitoringBeaconsInRegion(mRegion)
         } catch (e: RemoteException) {
             e.printStackTrace()
         }
