@@ -371,6 +371,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 disconnect()
                 mIsUnlocked = null
             } else if (mIsBackground == null) {
+                disconnect()
                 mIsBackground = true
             }
             mIsEnterRegion = false
@@ -465,4 +466,3 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         }
     }
 }
-
