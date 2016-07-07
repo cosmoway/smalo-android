@@ -255,10 +255,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         mBeaconManager?.setForegroundBetweenScanPeriod(1000)
 
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
-        mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK
+        /*mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK
                 or PowerManager.ACQUIRE_CAUSES_WAKEUP
                 or PowerManager.ON_AFTER_RELEASE, "MyWakelockTag")
-        mWakeLock?.acquire()
+        mWakeLock?.acquire()*/
         // APIクライアント初期化
         mApiClient = GoogleApiClient
                 .Builder(this)
@@ -321,13 +321,13 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             e.printStackTrace()
         }
         mBeaconManager = null
-        mWakeLock?.release()
+        //mWakeLock?.release()
         disconnect()
         setRegionState(-1)
         stopForeground(true)
     }
 
-    //Beaconサービスの接続と開始
+    // TODO: Beaconサービスの接続と開始
     override fun onBeaconServiceConnect() {
         //領域監視の設定
         mBeaconManager?.setMonitorNotifier(this)
@@ -339,7 +339,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         }
     }
 
-    // 領域進入
+    // TODO: 領域進入
     override fun didEnterRegion(region: Region) {
         Log.i(TAG_SERVICE, "Enter Region")
         makeNotification("Enter Region")
@@ -360,9 +360,9 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         mBeaconManager?.setRangeNotifier(this)
     }
 
-    // 領域退出
+    // TODO: 領域退出
     override fun didExitRegion(region: Region) {
-        // レンジング停止
+        // TODO: レンジング停止
         try {
             Log.i(TAG_SERVICE, "Exit Region")
             mBeaconManager?.stopRangingBeaconsInRegion(region)
@@ -415,7 +415,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.i(TAG_SERVICE, "Determine State: " + i)
     }
 
-    //データを更新
+    // TODO: ウェアのデータを更新
     private fun sendDataByMessageApi(message: String) {
         Thread(Runnable {
             Log.i(TAG_API, "run")
