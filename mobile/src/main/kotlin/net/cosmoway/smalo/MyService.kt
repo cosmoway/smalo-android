@@ -242,17 +242,19 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         val IBEACON_FORMAT: String = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"
         mBeaconManager?.beaconParsers?.add(BeaconParser().setBeaconLayout(IBEACON_FORMAT))
         val identifier: Identifier = Identifier.parse(MY_SERVICE_UUID)
-
         // Beacon名の作成
         val beaconId = this.packageName
         // major, minorの指定はしない
         mRegion = Region(beaconId, identifier, null, null)
         mRegionBootstrap = RegionBootstrap(this, mRegion)
         // iBeacon領域を監視(モニタリング)するスキャン間隔を設定
-        mBeaconManager?.setBackgroundScanPeriod(3000)
-        mBeaconManager?.setBackgroundBetweenScanPeriod(1000)
-        mBeaconManager?.setForegroundScanPeriod(3000)
-        mBeaconManager?.setForegroundBetweenScanPeriod(1000)
+        // TODO: iBeacon領域監視をする時間
+        mBeaconManager?.setBackgroundScanPeriod(1000)
+        // TODO: iBeacon領域監視を休む時間
+        mBeaconManager?.setBackgroundBetweenScanPeriod(19000)
+        mBeaconManager?.setForegroundScanPeriod(1000)
+        mBeaconManager?.setForegroundBetweenScanPeriod(3000)
+        mBeaconManager?.setBackgroundMode(true)
 
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         /*mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK
@@ -342,6 +344,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     // TODO: 領域進入
     override fun didEnterRegion(region: Region) {
         Log.i(TAG_SERVICE, "Enter Region")
+        mBeaconManager?.setBackgroundMode(false)
         makeNotification("Enter Region")
         disconnect()
         connectIfNeeded()
@@ -375,6 +378,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 mIsBackground = true
             }
             mIsEnterRegion = false
+            mBeaconManager?.setBackgroundMode(true)
             setRegionState(0)
         } catch (e: RemoteException) {
             e.printStackTrace()
