@@ -84,8 +84,8 @@ class RegisterActivity : AppCompatActivity(), View.OnClickListener {
                         showSnackBar("正常に登録されました。")
                         val intent: Intent = Intent(this@RegisterActivity,
                                 MobileActivity::class.java)
-                        intent.putExtra("bootState", 1)
-                        intent.putExtra("uuid", mId)
+                        intent.putExtra(MobileActivity.EXTRA_BOOT_STATE, 1)
+                        intent.putExtra(MobileActivity.EXTRA_UUID, mId)
                         startActivity(intent)
                         finish()
                     } else if (result.equals("400")) {

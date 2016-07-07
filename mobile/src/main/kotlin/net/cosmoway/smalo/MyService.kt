@@ -32,8 +32,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         MonitorNotifier, MyWebSocketClient.MyCallbacks, MobileActivity.Callback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private var mActivity: MobileActivity? = null
-
     // BGで監視するiBeacon領域
     private var mRegionBootstrap: RegionBootstrap? = null
     // iBeacon検知用のマネージャー
@@ -58,13 +56,20 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         private val TAG_SERVICE = "MyService"
         private val TAG_API = "API"
         private val MY_SERVICE_UUID = "51a4a738-62b8-4b26-a929-3bbac2a5ce7c"
-        private val MY_APP_NAME = "SMALO"
+        // FIXME: `FLAG_START`,`FLAG_STOP` の名前変更。MyService 単独で分かる名前に
         val FLAG_START = "start"
         val FLAG_STOP = "stop"
+        val ACTION_UPDATE = "net.cosmoway.smalo.action.UPDATE"
+        // FIXME: 名前の変更をすべき(lock, unlock を受け取るもの)
+        val EXTRA_EXTRA = "extra"
+        val EXTRA_UUID = "uuid"
+        val EXTRA_STATE = "state"
+        val COMMAND_LOCK = "lock"
+        val COMMAND_UNLOCK = "unlock"
     }
 
     override fun connectionOpen() {
-        sendJson("{\"uuid\":\"$mId\"}")
+        sendUuid(mId)
     }
 
     override fun onConnected(bundle: Bundle?) {
@@ -80,7 +85,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     override fun onStateChange(str: String?) {
-        sendBroadCast(str as String)
+        sendBroadcast(str as String)
         sendDataByMessageApi(str)
         mState = str
         Log.i(TAG_SERVICE, mState)
@@ -111,23 +116,37 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
 
     override fun onUnLocking() {
         Log.i(TAG_SERVICE, "unlocking")
-        sendJson("{\"command\":\"unlock\"}")
+        sendUnlockSignal()
     }
 
     override fun onLocking() {
         Log.i(TAG_SERVICE, "locking")
-        sendJson("{\"command\":\"lock\"}")
+        sendLockSignal()
     }
 
     override fun onConnecting() {
         Log.i(TAG_SERVICE, "connecting")
-        sendJson("{\"uuid\":\"$mId\"}")
+        sendUuid(mId)
     }
 
     override fun error(ex: Exception) {
         Log.i(TAG_SERVICE, "error:${ex.message}")
         if (!ex.message.equals("ssl == null"))
             connectIfNeeded()
+    }
+
+    private fun sendUuid(uuid: String?) {
+        uuid?.let {
+            sendJson("{\"uuid\":\"$it\"}")
+        }
+    }
+
+    private fun sendLockSignal() {
+        sendJson("{\"command\":\"lock\"}")
+    }
+
+    private fun sendUnlockSignal() {
+        sendJson("{\"command\":\"unlock\"}")
     }
 
     private fun sendJson(json: String) {
@@ -159,13 +178,14 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 notificationIntent, 0)
 
         builder.setContentTitle(title) // 1行目
+        // FIXME: タイトルの文字で判断するのはバグを生む危険有り（タイトルを変えたとき、ここも変更する必要があることに気付けるか）
         if (title.equals("Enter Region")) {
             builder.setContentText("領域に入りました。")
         } else if (title.equals("Exit Region")) {
             builder.setContentText("領域から出ました。")
         }
         builder.setContentIntent(contentIntent)
-        builder.setTicker(MY_APP_NAME) // 通知到着時に通知バーに表示(4.4まで)
+        builder.setTicker(getString(R.string.app_name)) // 通知到着時に通知バーに表示(4.4まで)
         // 5.0からは表示されない
 
         val manager = NotificationManagerCompat.from(applicationContext)
@@ -173,11 +193,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     }
 
     // TODO:状態
-    private fun sendBroadCast(state: String) {
+    private fun sendBroadcast(state: String) {
         Log.i(TAG_SERVICE, "sendBroadCastToMainActivity,$state")
-        val broadcastIntent: Intent = Intent()
-        broadcastIntent.putExtra("state", state)
-        broadcastIntent.action = "UPDATE_ACTION"
+        val broadcastIntent = Intent()
+        broadcastIntent.putExtra(MyService.EXTRA_STATE, state)
+        broadcastIntent.action = MyService.ACTION_UPDATE
         baseContext.sendBroadcast(broadcastIntent)
     }
 
@@ -194,7 +214,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             val sslContext = SSLContext.getDefault()
             mWebSocketClient?.setWebSocketFactory(DefaultSSLWebSocketClientFactory(sslContext))
 
-            mWebSocketClient?.setCallbacks(this@MyService)
+            mWebSocketClient?.setCallbacks(this)
             mWebSocketClient?.connect()
         }
     }
@@ -216,8 +236,6 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         super.onCreate()
         Log.i(TAG_SERVICE, "created")
 
-        mActivity = MobileActivity()
-        mActivity?.setCallback(this)
         //BTMのインスタンス化
         mBeaconManager = BeaconManager.getInstanceForApplication(this)
         //Parserの設定
@@ -226,7 +244,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         val identifier: Identifier = Identifier.parse(MY_SERVICE_UUID)
 
         // Beacon名の作成
-        val beaconId = this@MyService.packageName
+        val beaconId = this.packageName
         // major, minorの指定はしない
         mRegion = Region(beaconId, identifier, null, null)
         mRegionBootstrap = RegionBootstrap(this, mRegion)
@@ -254,7 +272,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.i(TAG_SERVICE, "Command Started")
 
-        val uuid = intent?.getStringExtra("uuid")
+        val uuid = intent?.getStringExtra(MyService.EXTRA_UUID)
         // TODO: UUID読出
         if (uuid != null) {
             Log.i(TAG_SERVICE, uuid)
@@ -271,9 +289,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
         Log.i(TAG_SERVICE, "uuid:$mId")
 
         // in foreground.
-        val extra: String? = intent?.getStringExtra("extra")
-        if (extra.equals("lock") || extra.equals("unlock")) {
-            sendJson("{\"command\":\"$extra\"}")
+        val extra: String? = intent?.getStringExtra(MyService.EXTRA_EXTRA)
+        if (extra.equals(MyService.COMMAND_LOCK)) {
+            sendLockSignal()
+        } else if (extra.equals(MyService.COMMAND_UNLOCK)) {
+            sendUnlockSignal()
         } else if (extra.equals(FLAG_START)) {
             mIsBackground = false
             disconnect()
@@ -369,7 +389,7 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
             if (beacon.id1.toString() == MY_SERVICE_UUID && mIsBackground == true) {
                 if (beacon.distance != -1.0 && mIsUnlocked == false && mIsEnterRegion == true) {
                     // TODO:解錠リクエスト
-                    sendJson("{\"command\":\"unlock\"}")
+                    sendUnlockSignal()
                     mIsUnlocked = true
                 } else if (mIsUnlocked == null) {
                     connectIfNeeded()
@@ -420,10 +440,10 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 //TODO: 鍵の情報の取得
                 Log.i(TAG_SERVICE, "getState")
                 if (mState != null) {
-                    sendBroadCast(mState as String)
+                    sendBroadcast(mState as String)
                     sendDataByMessageApi(mState as String)
                 } else {
-                    sendBroadCast("unknown")
+                    sendBroadcast("unknown")
                     sendDataByMessageApi("unknown")
                 }
                 // TODO: 解錠施錠要求時
@@ -433,11 +453,11 @@ class MyService : WearableListenerService(), BeaconConsumer, BootstrapNotifier, 
                 if (mState.equals("locked")) {
                     //TODO: 開処理リクエスト。
                     Log.i(TAG_SERVICE, "unlocking")
-                    sendJson("{\"command\":\"unlock\"}")
+                    sendUnlockSignal()
                 } else if (mState.equals("unlocked")) {
                     //TODO:閉処理リクエスト。
                     Log.i(TAG_SERVICE, "locking")
-                    sendJson("{\"command\":\"lock\"}")
+                    sendLockSignal()
                 }
             } else {
                 Log.i("要求", "通ってない")

@@ -59,6 +59,8 @@ class MobileActivity : Activity(), View.OnClickListener {
         private val MY_APP_NAME = "SMALO"
         private val PREFERENCE_INIT = 0
         private val PREFERENCE_BOOTED = 1
+        val EXTRA_BOOT_STATE = "bootState"
+        val EXTRA_UUID = "uuid"
     }
 
     fun setCallback(callback: Callback) {
@@ -90,12 +92,14 @@ class MobileActivity : Activity(), View.OnClickListener {
 
     private fun setState(state: Int) {
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        // FIXME: "InitState" の定数化。冗長
         sp.edit().putInt("InitState", state).apply()
         Log.i(TAG, state.toString())
     }
 
     private fun setId(uuid: String) {
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        // FIXME: "uuid" の定数化。冗長
         sp.edit().putString("uuid", uuid).apply()
         Log.i(TAG, uuid)
     }
@@ -105,6 +109,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         // 読み込み
         val state: Int
         val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        // FIXME: "InitState" の定数化。冗長
         state = sp.getInt("InitState", PREFERENCE_INIT)
         //ログ表示
         Log.i(TAG, "state:$state")
@@ -153,39 +158,7 @@ class MobileActivity : Activity(), View.OnClickListener {
             }
         }
     }
-
-    //TODO: サービスからブロードキャストされ、値を受け取った時に動かしたい内容を書く。
-    /*private val updateHandler = object : Handler() {
-        override fun handleMessage(msg: Message) {
-            val bundle = msg.data
-            mState = bundle.getString("state")
-            if (mState.equals("locked")) {
-                makeNotification("施錠されました。")
-                Log.i(TAG, "message:L")
-                setColor(R.drawable.bg_grad_main, R.drawable.oval)
-                mLockButton?.isClickable = true
-                animationEnd()
-                mLockButton?.setImageResource(R.drawable.smalo_close_button)
-                mLockButton?.isEnabled = true
-            } else if (mState.equals("unlocked")) {
-                makeNotification("解錠されました。")
-                Log.i(TAG, "message:UL")
-                setColor(R.drawable.bg_grad_unlocked, R.drawable.oval_unlocked)
-                mLockButton?.isClickable = true
-                animationEnd()
-                mLockButton?.setImageResource(R.drawable.smalo_open_button)
-                mLockButton?.isEnabled = true
-            } else if (mState.equals("unknown")) {
-                Log.i(TAG, "message:UK")
-                setColor(R.drawable.bg_grad_main, R.drawable.oval)
-                mLockButton?.isClickable = false
-                animationEnd()
-                mLockButton?.setImageResource(R.drawable.smalo_search_icon)
-                mLockButton?.isEnabled = false
-                animationStart()
-            }
-        }
-    }*/
+    // FIXME: Handler でなくても良さそう。ここで BroadcastReceiver を定義してはどうか
 
     private fun setColor(bg: Int, oval: Int) {
         mBackground?.setBackgroundResource(bg)
@@ -238,6 +211,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                                 "「設定 -> バッテリー -> バッテリーの使用量 -> その他-> バッテリーの最適化 -> すべてのアプリ -> SMALO」" +
                                 "をタップし、設定を変更して下さい。\n" +
                                 "なお、最適化状態時は、" + MY_APP_NAME + "の動作に影響が発生します。")
+                        // FIXME: "OK" の代わりに android.R.string.ok を使用
                         .setPositiveButton("OK") { dialog, which ->
                             //val intent: Intent = Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS)
                             //val uri: Uri = Uri.fromParts("package", getPackageName(), null)
@@ -255,6 +229,7 @@ class MobileActivity : Activity(), View.OnClickListener {
                     .setTitle("確認")
                     .setMessage("通知音を鳴らすには、\n"
                             + MY_APP_NAME + "に対する記憶装置へのアクセス許可発行が必要です。")
+                    // FIXME: "OK" の代わりに android.R.string.ok を使用
                     .setPositiveButton("OK") { dialog, which ->
                         ActivityCompat.requestPermissions(this,
                                 arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 0)
@@ -303,11 +278,10 @@ class MobileActivity : Activity(), View.OnClickListener {
 
         mReceiver = MyBroadcastReceiver()
         val intentFilter = IntentFilter()
-        intentFilter.addAction("UPDATE_ACTION")
+        intentFilter.addAction(MyService.ACTION_UPDATE)
         registerReceiver(mReceiver, intentFilter)
-
         Log.i(TAG, "Created")
-        val state: Int? = intent?.getIntExtra("bootState", 0)
+        val state: Int? = intent?.getIntExtra(EXTRA_BOOT_STATE, 0)
         if (state == PREFERENCE_BOOTED) {
             setState(state)
         }
@@ -324,6 +298,7 @@ class MobileActivity : Activity(), View.OnClickListener {
             requestAccessStoragePermission()
             requestBatteryPermission()
 
+            // FIXME: `: BluetoothAdapter` は不要
             val adapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             if (adapter.isEnabled == false) {
                 adapter.enable()
@@ -336,7 +311,7 @@ class MobileActivity : Activity(), View.OnClickListener {
         Log.i(TAG, "Stopped")
         if (getState() == PREFERENCE_BOOTED) {
             val intent: Intent = Intent(this, MyService::class.java)
-            intent.putExtra("extra", MyService.FLAG_STOP)
+            intent.putExtra(MyService.EXTRA_EXTRA, MyService.FLAG_STOP)
             startService(intent)
         }
     }
@@ -352,16 +327,16 @@ class MobileActivity : Activity(), View.OnClickListener {
                 finish()
             }
             PREFERENCE_BOOTED -> {
-                if (intent.getStringExtra("uuid") != null) {
-                    val uuid: String = intent.getStringExtra("uuid")
+                if (intent.getStringExtra(MyService.EXTRA_UUID) != null) {
+                    val uuid: String = intent.getStringExtra(MyService.EXTRA_UUID)
                     if (!uuid.isNullOrEmpty()) {
                         setId(uuid)
                     }
                 }
                 val intent: Intent = Intent(this, MyService::class.java)
-                intent.putExtra("extra", MyService.FLAG_START)
+                intent.putExtra(MyService.EXTRA_EXTRA, MyService.FLAG_START)
                 if (!getId().isNullOrEmpty()) {
-                    intent.putExtra("uuid", getId())
+                    intent.putExtra(MyService.EXTRA_UUID, getId())
                 }
                 startService(intent)
             }
@@ -391,13 +366,14 @@ class MobileActivity : Activity(), View.OnClickListener {
             if (mState != null) {
                 animationEnd()
                 Log.i(TAG, mCallback.toString())
+                // FIXME: "locked","unlocked" の定数化
                 if (mState.equals("locked")) {
                     val intent: Intent = Intent(this, MyService::class.java)
-                    intent.putExtra("extra", "unlock")
+                    intent.putExtra(MyService.EXTRA_EXTRA, MyService.COMMAND_UNLOCK)
                     startService(intent)
                 } else if (mState.equals("unlocked")) {
                     val intent: Intent = Intent(this, MyService::class.java)
-                    intent.putExtra("extra", "lock")
+                    intent.putExtra(MyService.EXTRA_EXTRA, MyService.COMMAND_LOCK)
                     startService(intent)
                 }
             }
